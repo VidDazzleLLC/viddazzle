@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { createWorkflow } from '@/lib/supabase';
+import { createWorkflow } from '@/lib/database';
 import fs from 'fs';
 import path from 'path';
 

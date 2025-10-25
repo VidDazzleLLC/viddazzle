@@ -1,4 +1,4 @@
-import { getWorkflows, getWorkflow, createWorkflow, updateWorkflow, deleteWorkflow } from '@/lib/supabase';
+import { getWorkflows, getWorkflow, createWorkflow, updateWorkflow, deleteWorkflow } from '@/lib/database';
 
 /**
  * API endpoint for managing workflows

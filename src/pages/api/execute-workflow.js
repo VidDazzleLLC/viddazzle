@@ -1,4 +1,4 @@
-import { getWorkflow, createExecution, updateExecution, updateWorkflow, logToolUsage, getConnectors } from '@/lib/supabase';
+import { getWorkflow, createExecution, updateExecution, updateWorkflow, logToolUsage, getConnectors } from '@/lib/database';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
@@ -267,46 +267,76 @@ async function executeNetworkTool(tool, input) {
  * Execute database tools
  */
 async function executeDatabaseTool(tool, input) {
-  const { supabase } = require('@/lib/supabase');
+  const { query } = require('@/lib/database');
 
   if (tool.name === 'database_query') {
-    let query = supabase.from(input.table);
+    let queryText = '';
+    let params = [];
 
     switch (input.operation) {
       case 'select':
-        query = query.select('*');
+        queryText = `SELECT * FROM ${input.table}`;
         if (input.filter) {
+          const conditions = [];
+          let paramIndex = 1;
           Object.entries(input.filter).forEach(([key, value]) => {
-            query = query.eq(key, value);
+            conditions.push(`${key} = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
           });
+          if (conditions.length > 0) {
+            queryText += ` WHERE ${conditions.join(' AND ')}`;
+          }
         }
         break;
       case 'insert':
-        query = query.insert(input.data);
+        const insertKeys = Object.keys(input.data);
+        const insertValues = Object.values(input.data);
+        queryText = `INSERT INTO ${input.table} (${insertKeys.join(', ')}) VALUES (${insertKeys.map((_, i) => `$${i + 1}`).join(', ')}) RETURNING *`;
+        params = insertValues;
         break;
       case 'update':
-        query = query.update(input.data);
+        const updateFields = [];
+        let updateParamIndex = 1;
+        Object.entries(input.data).forEach(([key, value]) => {
+          updateFields.push(`${key} = $${updateParamIndex}`);
+          params.push(value);
+          updateParamIndex++;
+        });
+        queryText = `UPDATE ${input.table} SET ${updateFields.join(', ')}`;
         if (input.filter) {
+          const conditions = [];
           Object.entries(input.filter).forEach(([key, value]) => {
-            query = query.eq(key, value);
+            conditions.push(`${key} = $${updateParamIndex}`);
+            params.push(value);
+            updateParamIndex++;
           });
+          if (conditions.length > 0) {
+            queryText += ` WHERE ${conditions.join(' AND ')}`;
+          }
         }
+        queryText += ' RETURNING *';
         break;
       case 'delete':
+        queryText = `DELETE FROM ${input.table}`;
         if (input.filter) {
+          const conditions = [];
+          let paramIndex = 1;
           Object.entries(input.filter).forEach(([key, value]) => {
-            query = query.eq(key, value);
+            conditions.push(`${key} = $${paramIndex}`);
+            params.push(value);
+            paramIndex++;
           });
+          if (conditions.length > 0) {
+            queryText += ` WHERE ${conditions.join(' AND ')}`;
+          }
         }
-        query = query.delete();
+        queryText += ' RETURNING *';
         break;
     }
 
-    const { data, error, count } = await query;
-
-    if (error) throw error;
-
-    return { data, count: count || data?.length || 0 };
+    const result = await query(queryText, params);
+    return { data: result.rows, count: result.rowCount };
   }
 
   throw new Error(`Database tool not implemented: ${tool.name}`);

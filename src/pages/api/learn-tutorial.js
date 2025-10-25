@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { insertTutorialEmbedding, searchTutorials } from '@/lib/supabase';
+import { insertTutorialEmbedding, searchTutorials } from '@/lib/database';
 import axios from 'axios';
 
 // Initialize Anthropic client (for future embedding generation if needed)
