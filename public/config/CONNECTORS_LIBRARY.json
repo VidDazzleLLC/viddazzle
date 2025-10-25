@@ -1,0 +1,661 @@
+{
+  "version": "1.0.0",
+  "connectors": [
+    {
+      "id": "slack",
+      "name": "Slack",
+      "description": "Send messages and interact with Slack workspaces",
+      "category": "communication",
+      "icon": "💬",
+      "auth_type": "oauth2",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "workspace_url": {
+            "type": "string",
+            "description": "Slack workspace URL"
+          },
+          "bot_token": {
+            "type": "string",
+            "description": "Bot User OAuth Token",
+            "secret": true
+          },
+          "signing_secret": {
+            "type": "string",
+            "description": "Signing Secret",
+            "secret": true
+          }
+        },
+        "required": ["bot_token"]
+      },
+      "actions": [
+        {
+          "id": "send_message",
+          "name": "Send Message",
+          "description": "Send a message to a channel or user",
+          "tool": "slack_message"
+        },
+        {
+          "id": "create_channel",
+          "name": "Create Channel",
+          "description": "Create a new Slack channel"
+        },
+        {
+          "id": "invite_users",
+          "name": "Invite Users",
+          "description": "Invite users to a channel"
+        }
+      ]
+    },
+    {
+      "id": "gmail",
+      "name": "Gmail",
+      "description": "Send and manage emails via Gmail",
+      "category": "communication",
+      "icon": "📧",
+      "auth_type": "oauth2",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "description": "Google OAuth Client ID"
+          },
+          "client_secret": {
+            "type": "string",
+            "description": "Google OAuth Client Secret",
+            "secret": true
+          },
+          "refresh_token": {
+            "type": "string",
+            "description": "OAuth Refresh Token",
+            "secret": true
+          }
+        },
+        "required": ["client_id", "client_secret"]
+      },
+      "actions": [
+        {
+          "id": "send_email",
+          "name": "Send Email",
+          "description": "Send an email",
+          "tool": "email_send"
+        },
+        {
+          "id": "read_emails",
+          "name": "Read Emails",
+          "description": "Read emails from inbox"
+        },
+        {
+          "id": "search_emails",
+          "name": "Search Emails",
+          "description": "Search emails by query"
+        }
+      ]
+    },
+    {
+      "id": "google_calendar",
+      "name": "Google Calendar",
+      "description": "Create and manage calendar events",
+      "category": "productivity",
+      "icon": "📅",
+      "auth_type": "oauth2",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "description": "Google OAuth Client ID"
+          },
+          "client_secret": {
+            "type": "string",
+            "description": "Google OAuth Client Secret",
+            "secret": true
+          },
+          "refresh_token": {
+            "type": "string",
+            "description": "OAuth Refresh Token",
+            "secret": true
+          },
+          "calendar_id": {
+            "type": "string",
+            "description": "Calendar ID (usually email)",
+            "default": "primary"
+          }
+        },
+        "required": ["client_id", "client_secret"]
+      },
+      "actions": [
+        {
+          "id": "create_event",
+          "name": "Create Event",
+          "description": "Create a calendar event",
+          "tool": "calendar_event"
+        },
+        {
+          "id": "list_events",
+          "name": "List Events",
+          "description": "List upcoming events"
+        },
+        {
+          "id": "update_event",
+          "name": "Update Event",
+          "description": "Update an existing event"
+        }
+      ]
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "description": "Interact with GitHub repositories, issues, and PRs",
+      "category": "developer",
+      "icon": "🐙",
+      "auth_type": "token",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "personal_access_token": {
+            "type": "string",
+            "description": "GitHub Personal Access Token",
+            "secret": true
+          },
+          "organization": {
+            "type": "string",
+            "description": "GitHub organization or username"
+          }
+        },
+        "required": ["personal_access_token"]
+      },
+      "actions": [
+        {
+          "id": "create_issue",
+          "name": "Create Issue",
+          "description": "Create a GitHub issue"
+        },
+        {
+          "id": "create_pr",
+          "name": "Create Pull Request",
+          "description": "Create a pull request"
+        },
+        {
+          "id": "list_repos",
+          "name": "List Repositories",
+          "description": "List repositories"
+        }
+      ]
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "description": "Create and update Notion pages and databases",
+      "category": "productivity",
+      "icon": "📝",
+      "auth_type": "token",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "api_token": {
+            "type": "string",
+            "description": "Notion Integration Token",
+            "secret": true
+          },
+          "database_id": {
+            "type": "string",
+            "description": "Default database ID"
+          }
+        },
+        "required": ["api_token"]
+      },
+      "actions": [
+        {
+          "id": "create_page",
+          "name": "Create Page",
+          "description": "Create a new page"
+        },
+        {
+          "id": "update_page",
+          "name": "Update Page",
+          "description": "Update an existing page"
+        },
+        {
+          "id": "query_database",
+          "name": "Query Database",
+          "description": "Query a database"
+        }
+      ]
+    },
+    {
+      "id": "airtable",
+      "name": "Airtable",
+      "description": "Manage Airtable bases and records",
+      "category": "productivity",
+      "icon": "📊",
+      "auth_type": "token",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "description": "Airtable API Key",
+            "secret": true
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Base ID"
+          }
+        },
+        "required": ["api_key", "base_id"]
+      },
+      "actions": [
+        {
+          "id": "create_record",
+          "name": "Create Record",
+          "description": "Create a new record"
+        },
+        {
+          "id": "update_record",
+          "name": "Update Record",
+          "description": "Update an existing record"
+        },
+        {
+          "id": "list_records",
+          "name": "List Records",
+          "description": "List records in a table"
+        }
+      ]
+    },
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "description": "Process payments and manage subscriptions",
+      "category": "payment",
+      "icon": "💳",
+      "auth_type": "token",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "secret_key": {
+            "type": "string",
+            "description": "Stripe Secret Key",
+            "secret": true
+          },
+          "publishable_key": {
+            "type": "string",
+            "description": "Stripe Publishable Key"
+          }
+        },
+        "required": ["secret_key"]
+      },
+      "actions": [
+        {
+          "id": "create_customer",
+          "name": "Create Customer",
+          "description": "Create a new customer"
+        },
+        {
+          "id": "create_payment",
+          "name": "Create Payment",
+          "description": "Create a payment intent"
+        },
+        {
+          "id": "create_subscription",
+          "name": "Create Subscription",
+          "description": "Create a subscription"
+        }
+      ]
+    },
+    {
+      "id": "twilio",
+      "name": "Twilio",
+      "description": "Send SMS and make phone calls",
+      "category": "communication",
+      "icon": "📱",
+      "auth_type": "token",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "account_sid": {
+            "type": "string",
+            "description": "Twilio Account SID"
+          },
+          "auth_token": {
+            "type": "string",
+            "description": "Twilio Auth Token",
+            "secret": true
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "Twilio Phone Number"
+          }
+        },
+        "required": ["account_sid", "auth_token", "phone_number"]
+      },
+      "actions": [
+        {
+          "id": "send_sms",
+          "name": "Send SMS",
+          "description": "Send an SMS message"
+        },
+        {
+          "id": "make_call",
+          "name": "Make Call",
+          "description": "Make a phone call"
+        }
+      ]
+    },
+    {
+      "id": "sendgrid",
+      "name": "SendGrid",
+      "description": "Send transactional emails",
+      "category": "communication",
+      "icon": "✉️",
+      "auth_type": "token",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "description": "SendGrid API Key",
+            "secret": true
+          },
+          "from_email": {
+            "type": "string",
+            "description": "Default sender email address"
+          },
+          "from_name": {
+            "type": "string",
+            "description": "Default sender name"
+          }
+        },
+        "required": ["api_key", "from_email"]
+      },
+      "actions": [
+        {
+          "id": "send_email",
+          "name": "Send Email",
+          "description": "Send an email",
+          "tool": "email_send"
+        }
+      ]
+    },
+    {
+      "id": "aws_s3",
+      "name": "AWS S3",
+      "description": "Upload and manage files in S3",
+      "category": "storage",
+      "icon": "☁️",
+      "auth_type": "credentials",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "access_key_id": {
+            "type": "string",
+            "description": "AWS Access Key ID",
+            "secret": true
+          },
+          "secret_access_key": {
+            "type": "string",
+            "description": "AWS Secret Access Key",
+            "secret": true
+          },
+          "region": {
+            "type": "string",
+            "description": "AWS Region",
+            "default": "us-east-1"
+          },
+          "bucket": {
+            "type": "string",
+            "description": "S3 Bucket Name"
+          }
+        },
+        "required": ["access_key_id", "secret_access_key", "bucket"]
+      },
+      "actions": [
+        {
+          "id": "upload_file",
+          "name": "Upload File",
+          "description": "Upload a file to S3"
+        },
+        {
+          "id": "download_file",
+          "name": "Download File",
+          "description": "Download a file from S3"
+        },
+        {
+          "id": "list_files",
+          "name": "List Files",
+          "description": "List files in bucket"
+        }
+      ]
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "description": "Generate embeddings and use OpenAI models",
+      "category": "ai",
+      "icon": "🤖",
+      "auth_type": "token",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "description": "OpenAI API Key",
+            "secret": true
+          },
+          "organization": {
+            "type": "string",
+            "description": "OpenAI Organization ID"
+          }
+        },
+        "required": ["api_key"]
+      },
+      "actions": [
+        {
+          "id": "generate_embedding",
+          "name": "Generate Embedding",
+          "description": "Generate text embeddings"
+        },
+        {
+          "id": "chat_completion",
+          "name": "Chat Completion",
+          "description": "Generate chat completions"
+        }
+      ]
+    },
+    {
+      "id": "postgres",
+      "name": "PostgreSQL",
+      "description": "Execute SQL queries on PostgreSQL databases",
+      "category": "database",
+      "icon": "🐘",
+      "auth_type": "credentials",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "Database host"
+          },
+          "port": {
+            "type": "number",
+            "description": "Database port",
+            "default": 5432
+          },
+          "database": {
+            "type": "string",
+            "description": "Database name"
+          },
+          "username": {
+            "type": "string",
+            "description": "Database username"
+          },
+          "password": {
+            "type": "string",
+            "description": "Database password",
+            "secret": true
+          },
+          "ssl": {
+            "type": "boolean",
+            "description": "Use SSL connection",
+            "default": true
+          }
+        },
+        "required": ["host", "database", "username", "password"]
+      },
+      "actions": [
+        {
+          "id": "execute_query",
+          "name": "Execute Query",
+          "description": "Execute a SQL query",
+          "tool": "database_query"
+        }
+      ]
+    },
+    {
+      "id": "supabase",
+      "name": "Supabase",
+      "description": "Interact with Supabase database and services",
+      "category": "database",
+      "icon": "⚡",
+      "auth_type": "token",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "project_url": {
+            "type": "string",
+            "description": "Supabase Project URL"
+          },
+          "anon_key": {
+            "type": "string",
+            "description": "Supabase Anon Key"
+          },
+          "service_role_key": {
+            "type": "string",
+            "description": "Supabase Service Role Key",
+            "secret": true
+          }
+        },
+        "required": ["project_url", "anon_key"]
+      },
+      "actions": [
+        {
+          "id": "query_table",
+          "name": "Query Table",
+          "description": "Query a table",
+          "tool": "database_query"
+        },
+        {
+          "id": "insert_row",
+          "name": "Insert Row",
+          "description": "Insert a row",
+          "tool": "database_query"
+        },
+        {
+          "id": "vector_search",
+          "name": "Vector Search",
+          "description": "Search using vector embeddings",
+          "tool": "vector_search"
+        }
+      ]
+    },
+    {
+      "id": "zapier",
+      "name": "Zapier",
+      "description": "Trigger Zapier workflows",
+      "category": "automation",
+      "icon": "⚡",
+      "auth_type": "webhook",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "webhook_url": {
+            "type": "string",
+            "description": "Zapier Webhook URL"
+          }
+        },
+        "required": ["webhook_url"]
+      },
+      "actions": [
+        {
+          "id": "trigger_zap",
+          "name": "Trigger Zap",
+          "description": "Trigger a Zapier workflow"
+        }
+      ]
+    },
+    {
+      "id": "http_api",
+      "name": "HTTP API",
+      "description": "Make custom HTTP API requests",
+      "category": "network",
+      "icon": "🌐",
+      "auth_type": "custom",
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "base_url": {
+            "type": "string",
+            "description": "Base URL for API requests"
+          },
+          "headers": {
+            "type": "object",
+            "description": "Default headers to include"
+          },
+          "auth_header": {
+            "type": "string",
+            "description": "Authorization header value",
+            "secret": true
+          }
+        },
+        "required": ["base_url"]
+      },
+      "actions": [
+        {
+          "id": "http_request",
+          "name": "HTTP Request",
+          "description": "Make an HTTP request",
+          "tool": "http_request"
+        }
+      ]
+    }
+  ],
+  "categories": {
+    "communication": {
+      "name": "Communication",
+      "description": "Email, messaging, and notification services"
+    },
+    "productivity": {
+      "name": "Productivity",
+      "description": "Task management, calendars, and note-taking"
+    },
+    "developer": {
+      "name": "Developer Tools",
+      "description": "Code hosting, CI/CD, and development platforms"
+    },
+    "payment": {
+      "name": "Payment",
+      "description": "Payment processing and subscription management"
+    },
+    "storage": {
+      "name": "Storage",
+      "description": "File storage and content delivery"
+    },
+    "ai": {
+      "name": "AI & ML",
+      "description": "Artificial intelligence and machine learning services"
+    },
+    "database": {
+      "name": "Database",
+      "description": "Database management and querying"
+    },
+    "automation": {
+      "name": "Automation",
+      "description": "Workflow automation and integration platforms"
+    },
+    "network": {
+      "name": "Network",
+      "description": "HTTP APIs and web services"
+    }
+  }
+}
