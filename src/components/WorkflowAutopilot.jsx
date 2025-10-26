@@ -42,7 +42,8 @@ export default function WorkflowAutopilot() {
       const data = await response.json();
 
       if (data.success) {
-        setCurrentWorkflow(data.workflow);
+        // Use data.saved (which has the database ID) instead of data.workflow
+        setCurrentWorkflow(data.saved);
         setWorkflows([data.saved, ...workflows]);
         setActiveTab('workflow');
         setPrompt('');
@@ -62,10 +63,15 @@ export default function WorkflowAutopilot() {
     setExecution(null);
 
     try {
+      // If workflowId is not provided, pass the current workflow object
+      const payload = workflowId
+        ? { workflowId }
+        : { workflow: currentWorkflow };
+
       const response = await fetch('/api/execute-workflow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workflowId }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
