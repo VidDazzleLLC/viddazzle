@@ -1,11 +1,9 @@
 import { getWorkflow, createExecution, updateExecution, updateWorkflow, logToolUsage, getConnectors } from '@/lib/database';
 import axios from 'axios';
-import fs from 'fs';
-import path from 'path';
+import mcpToolsData from '@/../../public/config/MCP_TOOLS_DEFINITION.json';
 
-// Load MCP tools definition
-const mcpToolsPath = path.join(process.cwd(), 'public/config/MCP_TOOLS_DEFINITION.json');
-const mcpTools = JSON.parse(fs.readFileSync(mcpToolsPath, 'utf-8'));
+// Use imported JSON data
+const mcpTools = mcpToolsData;
 
 /**
  * Execute a workflow

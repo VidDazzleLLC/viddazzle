@@ -1,20 +1,16 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { createWorkflow } from '@/lib/database';
-import fs from 'fs';
-import path from 'path';
+import mcpToolsData from '@/../../public/config/MCP_TOOLS_DEFINITION.json';
+import connectorsData from '@/../../public/config/CONNECTORS_LIBRARY.json';
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Load MCP tools definition
-const mcpToolsPath = path.join(process.cwd(), 'public/config/MCP_TOOLS_DEFINITION.json');
-const mcpTools = JSON.parse(fs.readFileSync(mcpToolsPath, 'utf-8'));
-
-// Load connectors library
-const connectorsPath = path.join(process.cwd(), 'public/config/CONNECTORS_LIBRARY.json');
-const connectors = JSON.parse(fs.readFileSync(connectorsPath, 'utf-8'));
+// Use imported JSON data
+const mcpTools = mcpToolsData;
+const connectors = connectorsData;
 
 /**
  * Generate a workflow using Claude and MCP tools
