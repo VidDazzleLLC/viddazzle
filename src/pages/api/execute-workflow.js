@@ -1,4 +1,4 @@
-import { getWorkflow, createExecution, updateExecution, updateWorkflow, logToolUsage, getConnectors } from '@/lib/database';
+import { getWorkflow, createExecution, updateExecution, updateWorkflow, logToolUsage, getConnectors, query } from '@/lib/database';
 import axios from 'axios';
 import mcpToolsData from '@/../../public/config/MCP_TOOLS_DEFINITION.json';
 
@@ -265,8 +265,6 @@ async function executeNetworkTool(tool, input) {
  * Execute database tools
  */
 async function executeDatabaseTool(tool, input) {
-  const { query } = require('@/lib/database');
-
   if (tool.name === 'database_query') {
     let queryText = '';
     let params = [];
