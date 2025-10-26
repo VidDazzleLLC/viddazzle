@@ -1,6 +1,7 @@
 import { getWorkflow, createExecution, updateExecution, updateWorkflow, logToolUsage, getConnectors, query } from '@/lib/database';
 import axios from 'axios';
 import mcpToolsData from '@/../../public/config/MCP_TOOLS_DEFINITION.json';
+import { learnFromExecution } from '@/lib/learning-engine';
 
 // Use imported JSON data
 const mcpTools = mcpToolsData;
@@ -62,6 +63,21 @@ export default async function handler(req, res) {
       };
       await updateWorkflow(workflowId, stats);
     }
+
+    // 🧠 LEARNING ENGINE: Learn from this execution (async, non-blocking)
+    const executionData = {
+      id: executionId,
+      success: result.success,
+      error: result.error,
+      log: result.log,
+      duration: result.duration,
+      outputs: result.outputs,
+    };
+
+    // Learn in background (don't wait for it)
+    learnFromExecution(executionData, workflow).catch(err => {
+      console.error('Learning failed (non-critical):', err);
+    });
 
     return res.status(200).json({
       success: result.success,
