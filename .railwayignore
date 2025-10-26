@@ -1,2 +1,0 @@
-# Railway will use this to detect the build
-{ "extends": "./next.config.js" }
