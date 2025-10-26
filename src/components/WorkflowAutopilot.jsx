@@ -76,15 +76,21 @@ export default function WorkflowAutopilot() {
 
       const data = await response.json();
 
-      if (data.success) {
+      // Debug logging
+      console.log('Execution response:', data);
+      console.log('Response status:', response.status);
+
+      if (response.ok) {
         setExecution(data);
         setActiveTab('execution');
+        console.log('Execution set, logs:', data.log);
       } else {
-        alert('Execution failed: ' + data.error);
+        console.error('Execution failed:', data);
+        alert('Execution failed: ' + (data.error || data.message || 'Unknown error'));
       }
     } catch (error) {
       console.error('Error executing workflow:', error);
-      alert('Failed to execute workflow');
+      alert('Failed to execute workflow: ' + error.message);
     } finally {
       setExecuting(false);
     }
@@ -225,56 +231,90 @@ export default function WorkflowAutopilot() {
         )}
 
         {/* Execution Tab */}
-        {activeTab === 'execution' && execution && (
+        {activeTab === 'execution' && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Execution Results</h2>
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                  execution.success
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {execution.success ? (
-                    <>
-                      <CheckCircle className="w-5 h-5" />
-                      Success
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="w-5 h-5" />
-                      Failed
-                    </>
-                  )}
+              {!execution ? (
+                <div className="text-center py-12 text-gray-500">
+                  <p>No execution results yet. Execute a workflow to see results here.</p>
                 </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    Duration: {execution.duration}ms
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Execution Log</h3>
-                  <div className="space-y-2">
-                    {execution.log?.map((entry, index) => (
-                      <ExecutionLogEntry key={index} entry={entry} />
-                    ))}
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Execution Results</h2>
+                    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                      execution.success
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {execution.success ? (
+                        <>
+                          <CheckCircle className="w-5 h-5" />
+                          Success
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="w-5 h-5" />
+                          Failed
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {execution.outputs && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Outputs</h3>
-                    <pre className="bg-gray-50 p-4 rounded-lg overflow-auto text-sm">
-                      {JSON.stringify(execution.outputs, null, 2)}
-                    </pre>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        Duration: {execution.duration}ms
+                      </span>
+                      {execution.executionId && (
+                        <span>Execution ID: {execution.executionId}</span>
+                      )}
+                    </div>
+
+                    {execution.error && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p className="text-red-800 font-semibold">Error:</p>
+                        <p className="text-red-700 mt-1">{execution.error}</p>
+                      </div>
+                    )}
+
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Execution Log</h3>
+                      {!execution.log || execution.log.length === 0 ? (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <p className="text-yellow-800">No execution logs available. The workflow may not have started or logs were not generated.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {execution.log.map((entry, index) => (
+                            <ExecutionLogEntry key={index} entry={entry} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {execution.outputs && Object.keys(execution.outputs).length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Outputs</h3>
+                        <pre className="bg-gray-50 p-4 rounded-lg overflow-auto text-sm">
+                          {JSON.stringify(execution.outputs, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+
+                    {/* Debug info */}
+                    <details className="mt-4">
+                      <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-900">
+                        Show raw execution data (debug)
+                      </summary>
+                      <pre className="mt-2 bg-gray-100 p-4 rounded-lg overflow-auto text-xs">
+                        {JSON.stringify(execution, null, 2)}
+                      </pre>
+                    </details>
                   </div>
-                )}
-              </div>
+                </>
+              )}
             </div>
           </div>
         )}
