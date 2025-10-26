@@ -262,6 +262,43 @@ async function executeNetworkTool(tool, input) {
 }
 
 /**
+ * Sanitize data before database insertion
+ * Removes invalid timestamp templates and null values
+ */
+function sanitizeDataForDatabase(data) {
+  const sanitized = {};
+
+  for (const [key, value] of Object.entries(data)) {
+    // Skip null or undefined values
+    if (value === null || value === undefined) {
+      continue;
+    }
+
+    // Check if value looks like an unresolved template
+    if (typeof value === 'string' && value.includes('{{') && value.includes('}}')) {
+      // Skip timestamp-related templates
+      if (value.includes('Date') || value.includes('ISO') || value.includes('timestamp')) {
+        continue;
+      }
+    }
+
+    // Check for invalid timestamp strings
+    if (typeof value === 'string' && key.toLowerCase().includes('_at')) {
+      // Try to parse as date
+      const date = new Date(value);
+      if (isNaN(date.getTime())) {
+        // Invalid timestamp, skip it
+        continue;
+      }
+    }
+
+    sanitized[key] = value;
+  }
+
+  return sanitized;
+}
+
+/**
  * Execute database tools
  */
 async function executeDatabaseTool(tool, input) {
@@ -286,8 +323,10 @@ async function executeDatabaseTool(tool, input) {
         }
         break;
       case 'insert':
-        const insertKeys = Object.keys(input.data);
-        const insertValues = Object.values(input.data);
+        // Sanitize data before insertion
+        const sanitizedData = sanitizeDataForDatabase(input.data);
+        const insertKeys = Object.keys(sanitizedData);
+        const insertValues = Object.values(sanitizedData);
         queryText = `INSERT INTO ${input.table} (${insertKeys.join(', ')}) VALUES (${insertKeys.map((_, i) => `$${i + 1}`).join(', ')}) RETURNING *`;
         params = insertValues;
         break;
