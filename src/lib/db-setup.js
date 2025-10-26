@@ -241,6 +241,7 @@ async function createConnectorsTable() {
 
 /**
  * Create email_logs table (for workflow email logging)
+ * Comprehensive schema to support all email-related workflows
  */
 async function createEmailLogsTable() {
   await query(`
@@ -248,34 +249,73 @@ async function createEmailLogsTable() {
       id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
       workflow_id UUID REFERENCES workflows(id) ON DELETE SET NULL,
       execution_id UUID REFERENCES workflow_executions(id) ON DELETE SET NULL,
+      email_type TEXT DEFAULT 'notification',
       recipient TEXT NOT NULL,
+      recipient_name TEXT,
+      from_email TEXT,
+      from_name TEXT,
+      cc TEXT[],
+      bcc TEXT[],
+      reply_to TEXT,
       subject TEXT,
       body TEXT,
+      html_body TEXT,
+      template_id TEXT,
+      attachments JSONB DEFAULT '[]',
+      headers JSONB DEFAULT '{}',
       status TEXT DEFAULT 'sent',
       success BOOLEAN DEFAULT true,
       error TEXT,
+      provider TEXT,
+      message_id TEXT,
       metadata JSONB DEFAULT '{}',
-      sent_at TIMESTAMP DEFAULT NOW()
+      sent_at TIMESTAMP DEFAULT NOW(),
+      delivered_at TIMESTAMP,
+      opened_at TIMESTAMP,
+      clicked_at TIMESTAMP
     );
   `);
 
-  // Add success column if it doesn't exist (for existing tables)
+  // Add missing columns to existing tables (migration)
   await query(`
     DO $$
+    DECLARE
+      columns_to_add TEXT[] := ARRAY[
+        'success:BOOLEAN DEFAULT true',
+        'error:TEXT',
+        'email_type:TEXT DEFAULT ''notification''',
+        'recipient_name:TEXT',
+        'from_email:TEXT',
+        'from_name:TEXT',
+        'cc:TEXT[]',
+        'bcc:TEXT[]',
+        'reply_to:TEXT',
+        'html_body:TEXT',
+        'template_id:TEXT',
+        'attachments:JSONB DEFAULT ''[]''',
+        'headers:JSONB DEFAULT ''{}''',
+        'provider:TEXT',
+        'message_id:TEXT',
+        'delivered_at:TIMESTAMP',
+        'opened_at:TIMESTAMP',
+        'clicked_at:TIMESTAMP'
+      ];
+      col_def TEXT;
+      col_name TEXT;
+      col_type TEXT;
     BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'email_logs' AND column_name = 'success'
-      ) THEN
-        ALTER TABLE email_logs ADD COLUMN success BOOLEAN DEFAULT true;
-      END IF;
+      FOREACH col_def IN ARRAY columns_to_add
+      LOOP
+        col_name := split_part(col_def, ':', 1);
+        col_type := split_part(col_def, ':', 2);
 
-      IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'email_logs' AND column_name = 'error'
-      ) THEN
-        ALTER TABLE email_logs ADD COLUMN error TEXT;
-      END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'email_logs' AND column_name = col_name
+        ) THEN
+          EXECUTE format('ALTER TABLE email_logs ADD COLUMN %I %s', col_name, col_type);
+        END IF;
+      END LOOP;
     END $$;
   `);
 
@@ -288,6 +328,12 @@ async function createEmailLogsTable() {
   `);
   await query(`
     CREATE INDEX IF NOT EXISTS idx_email_logs_success ON email_logs(success);
+  `);
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_email_logs_email_type ON email_logs(email_type);
+  `);
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_email_logs_status ON email_logs(status);
   `);
 }
 
