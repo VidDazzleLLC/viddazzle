@@ -252,9 +252,31 @@ async function createEmailLogsTable() {
       subject TEXT,
       body TEXT,
       status TEXT DEFAULT 'sent',
+      success BOOLEAN DEFAULT true,
+      error TEXT,
       metadata JSONB DEFAULT '{}',
       sent_at TIMESTAMP DEFAULT NOW()
     );
+  `);
+
+  // Add success column if it doesn't exist (for existing tables)
+  await query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'email_logs' AND column_name = 'success'
+      ) THEN
+        ALTER TABLE email_logs ADD COLUMN success BOOLEAN DEFAULT true;
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'email_logs' AND column_name = 'error'
+      ) THEN
+        ALTER TABLE email_logs ADD COLUMN error TEXT;
+      END IF;
+    END $$;
   `);
 
   // Create indexes
@@ -263,6 +285,9 @@ async function createEmailLogsTable() {
   `);
   await query(`
     CREATE INDEX IF NOT EXISTS idx_email_logs_recipient ON email_logs(recipient);
+  `);
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_email_logs_success ON email_logs(success);
   `);
 }
 
