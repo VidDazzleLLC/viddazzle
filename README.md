@@ -1,6 +1,15 @@
 # Workflow Autopilot
 
-AI-powered workflow automation platform built with Claude Opus 4.1, MCP (Model Context Protocol), Next.js, and Supabase.
+AI-powered workflow automation platform built with Claude Opus 4.1, MCP (Model Context Protocol), Next.js, and Neon PostgreSQL.
+
+## 🚀 One-Click Deploy
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FVidDazzleLLC%2Fviddazzle&env=ANTHROPIC_API_KEY,CLAUDE_MODEL,DATABASE_URL&envDescription=Required%20API%20keys%20and%20database%20connection&envLink=https%3A%2F%2Fgithub.com%2FVidDazzleLLC%2Fviddazzle%2Fblob%2Fmain%2F.env.example&project-name=workflow-autopilot&repository-name=workflow-autopilot)
+
+**Required Environment Variables:**
+- `ANTHROPIC_API_KEY` - Your Claude API key from console.anthropic.com
+- `CLAUDE_MODEL` - Use: `claude-opus-4-20250514`
+- `DATABASE_URL` - Your Neon PostgreSQL connection string
 
 ## Features
 
@@ -18,7 +27,7 @@ AI-powered workflow automation platform built with Claude Opus 4.1, MCP (Model C
 - **Frontend**: Next.js 14, React, TailwindCSS, Lucide Icons
 - **Backend**: Next.js API Routes (serverless functions)
 - **AI**: Claude Opus 4.1 (Anthropic API)
-- **Database**: Supabase (PostgreSQL + pgvector)
+- **Database**: Neon (PostgreSQL + pgvector)
 - **Deployment**: Vercel
 - **Tools**: MCP (Model Context Protocol)
 
@@ -29,7 +38,7 @@ AI-powered workflow automation platform built with Claude Opus 4.1, MCP (Model C
 - Node.js 18.17.0 or higher
 - npm or yarn
 - Anthropic API key (for Claude)
-- Supabase account (free tier works)
+- Neon PostgreSQL account (free tier works)
 - (Optional) OpenAI API key for embeddings
 
 ### Installation
