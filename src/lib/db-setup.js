@@ -250,55 +250,85 @@ async function createEmailLogsTable() {
       workflow_id UUID REFERENCES workflows(id) ON DELETE SET NULL,
       execution_id UUID REFERENCES workflow_executions(id) ON DELETE SET NULL,
       email_type TEXT DEFAULT 'notification',
-      recipient TEXT NOT NULL,
+      user_email TEXT,
+      recipient TEXT,
       recipient_name TEXT,
+      recipient_email TEXT,
+      to_email TEXT,
       from_email TEXT,
       from_name TEXT,
+      sender_email TEXT,
+      sender_name TEXT,
       cc TEXT[],
       bcc TEXT[],
       reply_to TEXT,
       subject TEXT,
       body TEXT,
       html_body TEXT,
+      text_body TEXT,
+      content TEXT,
       template_id TEXT,
+      template_name TEXT,
       attachments JSONB DEFAULT '[]',
       headers JSONB DEFAULT '{}',
       status TEXT DEFAULT 'sent',
       success BOOLEAN DEFAULT true,
       error TEXT,
+      error_message TEXT,
       provider TEXT,
+      service TEXT,
       message_id TEXT,
       metadata JSONB DEFAULT '{}',
       sent_at TIMESTAMP DEFAULT NOW(),
       delivered_at TIMESTAMP,
       opened_at TIMESTAMP,
-      clicked_at TIMESTAMP
+      clicked_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
     );
   `);
 
-  // Add missing columns to existing tables (migration)
+  // Add missing columns to existing tables (comprehensive migration)
   await query(`
     DO $$
     DECLARE
       columns_to_add TEXT[] := ARRAY[
         'success:BOOLEAN DEFAULT true',
         'error:TEXT',
+        'error_message:TEXT',
         'email_type:TEXT DEFAULT ''notification''',
+        'user_email:TEXT',
+        'recipient:TEXT',
         'recipient_name:TEXT',
+        'recipient_email:TEXT',
+        'to_email:TEXT',
         'from_email:TEXT',
         'from_name:TEXT',
+        'sender_email:TEXT',
+        'sender_name:TEXT',
         'cc:TEXT[]',
         'bcc:TEXT[]',
         'reply_to:TEXT',
+        'subject:TEXT',
+        'body:TEXT',
         'html_body:TEXT',
+        'text_body:TEXT',
+        'content:TEXT',
         'template_id:TEXT',
+        'template_name:TEXT',
         'attachments:JSONB DEFAULT ''[]''',
         'headers:JSONB DEFAULT ''{}''',
+        'status:TEXT DEFAULT ''sent''',
         'provider:TEXT',
+        'service:TEXT',
         'message_id:TEXT',
+        'metadata:JSONB DEFAULT ''{}''',
+        'sent_at:TIMESTAMP DEFAULT NOW()',
         'delivered_at:TIMESTAMP',
         'opened_at:TIMESTAMP',
-        'clicked_at:TIMESTAMP'
+        'clicked_at:TIMESTAMP',
+        'created_at:TIMESTAMP DEFAULT NOW()',
+        'updated_at:TIMESTAMP DEFAULT NOW()'
       ];
       col_def TEXT;
       col_name TEXT;
@@ -325,6 +355,12 @@ async function createEmailLogsTable() {
   `);
   await query(`
     CREATE INDEX IF NOT EXISTS idx_email_logs_recipient ON email_logs(recipient);
+  `);
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_email_logs_user_email ON email_logs(user_email);
+  `);
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_email_logs_recipient_email ON email_logs(recipient_email);
   `);
   await query(`
     CREATE INDEX IF NOT EXISTS idx_email_logs_success ON email_logs(success);
