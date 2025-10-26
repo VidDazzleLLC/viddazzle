@@ -15,6 +15,10 @@ export async function setupDatabase() {
   };
 
   try {
+    // Create users table (for demo/testing workflows)
+    await createUsersTable();
+    results.tables.push('users');
+
     // Create workflows table
     await createWorkflowsTable();
     results.tables.push('workflows');
@@ -67,6 +71,40 @@ export async function isDatabaseInitialized() {
   } catch (error) {
     return false;
   }
+}
+
+/**
+ * Create users table (for demo/testing workflows)
+ */
+async function createUsersTable() {
+  await query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      name TEXT,
+      role TEXT DEFAULT 'user',
+      metadata JSONB DEFAULT '{}',
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+  `);
+
+  // Create index on email for fast lookups
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+  `);
+
+  // Insert sample users for testing workflows
+  await query(`
+    INSERT INTO users (email, name, role, metadata)
+    VALUES
+      ('john.doe@example.com', 'John Doe', 'user', '{"department": "Engineering"}'),
+      ('jane.smith@example.com', 'Jane Smith', 'admin', '{"department": "Product"}'),
+      ('bob.wilson@example.com', 'Bob Wilson', 'user', '{"department": "Sales"}'),
+      ('alice.johnson@example.com', 'Alice Johnson', 'user', '{"department": "Marketing"}'),
+      ('team@example.com', 'Team Distribution', 'system', '{"type": "group"}')
+    ON CONFLICT (email) DO NOTHING;
+  `);
 }
 
 /**
@@ -268,6 +306,7 @@ export async function dropAllTables() {
     'workflows',
     'connectors',
     'tutorial_embeddings',
+    'users',
   ];
 
   for (const table of tables) {
