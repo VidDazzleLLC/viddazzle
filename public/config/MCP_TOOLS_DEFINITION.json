@@ -511,6 +511,522 @@
           }
         }
       }
+    },
+    {
+      "name": "aitable_create_record",
+      "description": "Create a new record in Aitable CRM",
+      "category": "crm",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "datasheet_id": {
+            "type": "string",
+            "description": "Aitable datasheet ID"
+          },
+          "fields": {
+            "type": "object",
+            "description": "Record fields as key-value pairs"
+          }
+        },
+        "required": ["datasheet_id", "fields"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "record_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "aitable_get_records",
+      "description": "Get records from Aitable CRM with optional filtering",
+      "category": "crm",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "datasheet_id": {
+            "type": "string",
+            "description": "Aitable datasheet ID"
+          },
+          "view_id": {
+            "type": "string",
+            "description": "Optional view ID for filtering"
+          },
+          "filter_by_formula": {
+            "type": "string",
+            "description": "Optional formula for filtering records"
+          },
+          "max_records": {
+            "type": "number",
+            "description": "Maximum number of records to return",
+            "default": 100
+          }
+        },
+        "required": ["datasheet_id"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array"
+          },
+          "total": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    {
+      "name": "aitable_update_record",
+      "description": "Update an existing record in Aitable CRM",
+      "category": "crm",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "datasheet_id": {
+            "type": "string",
+            "description": "Aitable datasheet ID"
+          },
+          "record_id": {
+            "type": "string",
+            "description": "Record ID to update"
+          },
+          "fields": {
+            "type": "object",
+            "description": "Fields to update"
+          }
+        },
+        "required": ["datasheet_id", "record_id", "fields"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "record_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "muraena_search_people",
+      "description": "Search for B2B leads using Muraena.ai with 140M+ profiles",
+      "category": "leads",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "job_title": {
+            "type": "string",
+            "description": "Job title to search for"
+          },
+          "company_name": {
+            "type": "string",
+            "description": "Company name filter"
+          },
+          "industry": {
+            "type": "string",
+            "description": "Industry filter"
+          },
+          "location": {
+            "type": "string",
+            "description": "Location filter"
+          },
+          "company_size": {
+            "type": "string",
+            "description": "Company size range"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Maximum results to return",
+            "default": 10
+          }
+        },
+        "required": []
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "profiles": {
+            "type": "array"
+          },
+          "total_found": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    {
+      "name": "muraena_reveal_contact",
+      "description": "Reveal contact details for a person from Muraena.ai",
+      "category": "leads",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "person_id": {
+            "type": "string",
+            "description": "Muraena person ID or LinkedIn URL"
+          }
+        },
+        "required": ["person_id"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "linkedin_url": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "job_title": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "social_monitor_mentions",
+      "description": "Monitor social media for mentions, keywords, or hashtags across platforms",
+      "category": "social_listening",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Keywords to monitor"
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["twitter", "facebook", "linkedin", "reddit", "instagram"]
+            },
+            "description": "Social platforms to monitor"
+          },
+          "since": {
+            "type": "string",
+            "description": "Start date for monitoring (ISO 8601)"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Maximum mentions to return",
+            "default": 100
+          }
+        },
+        "required": ["keywords", "platforms"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "mentions": {
+            "type": "array"
+          },
+          "total": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    {
+      "name": "social_analyze_sentiment",
+      "description": "Analyze sentiment of social media posts using Claude AI",
+      "category": "ai_sales",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Text content to analyze"
+          },
+          "context": {
+            "type": "string",
+            "description": "Additional context for analysis"
+          }
+        },
+        "required": ["text"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "sentiment": {
+            "type": "string",
+            "enum": ["positive", "negative", "neutral", "mixed"]
+          },
+          "confidence": {
+            "type": "number"
+          },
+          "emotions": {
+            "type": "array"
+          },
+          "is_lead": {
+            "type": "boolean"
+          },
+          "pain_points": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    {
+      "name": "social_identify_lead",
+      "description": "Use AI to identify if a social media user is a potential lead",
+      "category": "ai_sales",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "post_content": {
+            "type": "string",
+            "description": "Social media post content"
+          },
+          "user_profile": {
+            "type": "object",
+            "description": "User profile information"
+          },
+          "business_context": {
+            "type": "string",
+            "description": "Your business offering context"
+          }
+        },
+        "required": ["post_content"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "is_qualified_lead": {
+            "type": "boolean"
+          },
+          "lead_score": {
+            "type": "number"
+          },
+          "pain_points": {
+            "type": "array"
+          },
+          "recommended_solution": {
+            "type": "string"
+          },
+          "suggested_response": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "ai_generate_sales_response",
+      "description": "Generate personalized AI sales response to engage a potential lead",
+      "category": "ai_sales",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "lead_info": {
+            "type": "object",
+            "description": "Lead information including post content and pain points"
+          },
+          "offer_type": {
+            "type": "string",
+            "enum": ["voice_ai", "neuro_marketing", "financing", "general"],
+            "description": "Type of solution to offer"
+          },
+          "tone": {
+            "type": "string",
+            "enum": ["professional", "friendly", "casual", "consultative"],
+            "default": "consultative"
+          }
+        },
+        "required": ["lead_info", "offer_type"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "subject_line": {
+            "type": "string"
+          },
+          "call_to_action": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "social_post_reply",
+      "description": "Post a reply to a social media post",
+      "category": "social_listening",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": ["twitter", "facebook", "linkedin", "reddit"],
+            "description": "Social media platform"
+          },
+          "post_id": {
+            "type": "string",
+            "description": "ID of the post to reply to"
+          },
+          "message": {
+            "type": "string",
+            "description": "Reply message content"
+          }
+        },
+        "required": ["platform", "post_id", "message"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "reply_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "social_send_dm",
+      "description": "Send a direct message to a user on social media",
+      "category": "social_listening",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": ["twitter", "facebook", "linkedin", "instagram"],
+            "description": "Social media platform"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "User ID or username"
+          },
+          "message": {
+            "type": "string",
+            "description": "Direct message content"
+          }
+        },
+        "required": ["platform", "user_id", "message"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "ai_qualify_lead_conversation",
+      "description": "Use AI to have a conversation with a lead and qualify them",
+      "category": "ai_sales",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "conversation_history": {
+            "type": "array",
+            "description": "Previous messages in the conversation"
+          },
+          "latest_message": {
+            "type": "string",
+            "description": "Latest message from the lead"
+          },
+          "business_context": {
+            "type": "string",
+            "description": "Your business offerings"
+          }
+        },
+        "required": ["latest_message"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "string"
+          },
+          "qualification_status": {
+            "type": "string",
+            "enum": ["qualified", "nurture", "disqualified", "needs_more_info"]
+          },
+          "budget_indicator": {
+            "type": "string"
+          },
+          "urgency": {
+            "type": "string"
+          },
+          "next_action": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "workflow_full_sales_automation",
+      "description": "Complete end-to-end sales automation: monitor, analyze, engage, convert",
+      "category": "ai_sales",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "keywords": {
+            "type": "array",
+            "description": "Keywords to monitor for leads"
+          },
+          "platforms": {
+            "type": "array",
+            "description": "Social platforms to monitor"
+          },
+          "offer_types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["voice_ai", "neuro_marketing", "financing"]
+            },
+            "description": "Solutions to offer"
+          },
+          "auto_engage": {
+            "type": "boolean",
+            "description": "Automatically engage qualified leads",
+            "default": true
+          }
+        },
+        "required": ["keywords", "platforms"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "leads_found": {
+            "type": "number"
+          },
+          "leads_qualified": {
+            "type": "number"
+          },
+          "engagements_sent": {
+            "type": "number"
+          },
+          "crm_records_created": {
+            "type": "number"
+          }
+        }
+      }
     }
   ],
   "categories": {
@@ -549,6 +1065,22 @@
     "control": {
       "name": "Control Flow",
       "description": "Tools for controlling workflow execution"
+    },
+    "crm": {
+      "name": "CRM & Contact Management",
+      "description": "Tools for managing customer relationships with Aitable.ai"
+    },
+    "leads": {
+      "name": "Lead Generation",
+      "description": "Tools for finding and enriching B2B leads with Muraena.ai"
+    },
+    "social_listening": {
+      "name": "Social Media Monitoring",
+      "description": "Tools for monitoring and engaging on social media platforms"
+    },
+    "ai_sales": {
+      "name": "AI-Powered Sales",
+      "description": "Tools for AI-driven sentiment analysis, lead qualification, and sales conversations"
     }
   }
 }

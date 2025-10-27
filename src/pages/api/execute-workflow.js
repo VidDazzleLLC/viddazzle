@@ -5,6 +5,7 @@ import { learnFromExecution } from '@/lib/learning-engine';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
+import * as platformIntegrations from '@/lib/platform-integrations';
 
 // Use imported JSON data
 const mcpTools = mcpToolsData;
@@ -254,6 +255,14 @@ async function executeTool(tool, input, timeout) {
         return await executeControlTool(tool, input);
       case 'data':
         return await executeDataTool(tool, input);
+      case 'crm':
+        return await executeCRMTool(tool, input);
+      case 'leads':
+        return await executeLeadsTool(tool, input);
+      case 'social_listening':
+        return await executeSocialListeningTool(tool, input);
+      case 'ai_sales':
+        return await executeAISalesTool(tool, input);
       default:
         return await executeGenericTool(tool, input);
     }
@@ -638,6 +647,132 @@ function resolveVariables(input, variables) {
  */
 function extractPath(obj, path) {
   return path.split('.').reduce((current, key) => current?.[key], obj);
+}
+
+/**
+ * Execute CRM tools (Aitable.ai)
+ */
+async function executeCRMTool(tool, input) {
+  switch (tool.name) {
+    case 'aitable_create_record':
+      return await platformIntegrations.aitableCreateRecord(input.datasheet_id, input.fields);
+
+    case 'aitable_get_records':
+      return await platformIntegrations.aitableGetRecords(input.datasheet_id, {
+        viewId: input.view_id,
+        filterByFormula: input.filter_by_formula,
+        maxRecords: input.max_records
+      });
+
+    case 'aitable_update_record':
+      return await platformIntegrations.aitableUpdateRecord(
+        input.datasheet_id,
+        input.record_id,
+        input.fields
+      );
+
+    default:
+      throw new Error(`CRM tool not implemented: ${tool.name}`);
+  }
+}
+
+/**
+ * Execute Lead Generation tools (Muraena.ai)
+ */
+async function executeLeadsTool(tool, input) {
+  switch (tool.name) {
+    case 'muraena_search_people':
+      return await platformIntegrations.muraenaSearchPeople({
+        job_title: input.job_title,
+        company_name: input.company_name,
+        industry: input.industry,
+        location: input.location,
+        company_size: input.company_size,
+        limit: input.limit
+      });
+
+    case 'muraena_reveal_contact':
+      return await platformIntegrations.muraenaRevealContact(input.person_id);
+
+    default:
+      throw new Error(`Leads tool not implemented: ${tool.name}`);
+  }
+}
+
+/**
+ * Execute Social Listening tools
+ */
+async function executeSocialListeningTool(tool, input) {
+  switch (tool.name) {
+    case 'social_monitor_mentions':
+      return await platformIntegrations.socialMonitorMentions(
+        input.keywords,
+        input.platforms,
+        {
+          since: input.since,
+          limit: input.limit
+        }
+      );
+
+    case 'social_post_reply':
+      return await platformIntegrations.socialPostReply(
+        input.platform,
+        input.post_id,
+        input.message
+      );
+
+    case 'social_send_dm':
+      return await platformIntegrations.socialSendDM(
+        input.platform,
+        input.user_id,
+        input.message
+      );
+
+    default:
+      throw new Error(`Social listening tool not implemented: ${tool.name}`);
+  }
+}
+
+/**
+ * Execute AI Sales tools
+ */
+async function executeAISalesTool(tool, input) {
+  switch (tool.name) {
+    case 'social_analyze_sentiment':
+      return await platformIntegrations.analyzeSentiment(input.text, input.context);
+
+    case 'social_identify_lead':
+      return await platformIntegrations.identifyLead(
+        input.post_content,
+        input.user_profile,
+        input.business_context
+      );
+
+    case 'ai_generate_sales_response':
+      return await platformIntegrations.generateSalesResponse(
+        input.lead_info,
+        input.offer_type,
+        input.tone
+      );
+
+    case 'ai_qualify_lead_conversation':
+      return await platformIntegrations.qualifyLeadConversation(
+        input.conversation_history,
+        input.latest_message,
+        input.business_context
+      );
+
+    case 'workflow_full_sales_automation':
+      return await platformIntegrations.runFullSalesAutomation(
+        input.keywords,
+        input.platforms,
+        input.offer_types,
+        input.auto_engage
+      );
+
+    default:
+      throw new Error(`AI Sales tool not implemented: ${tool.name}`);
+  }
 }
 
 /**
