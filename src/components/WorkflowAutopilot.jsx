@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Play, Plus, Sparkles, Loader2, CheckCircle, XCircle, Clock, Zap } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import AutopilotSidebar from './AutopilotSidebar';
 
 export default function WorkflowAutopilot() {
   const [prompt, setPrompt] = useState('');
@@ -10,6 +11,7 @@ export default function WorkflowAutopilot() {
   const [loading, setLoading] = useState(false);
   const [executing, setExecuting] = useState(false);
   const [activeTab, setActiveTab] = useState('generate');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Load workflows on mount
   useEffect(() => {
@@ -107,7 +109,7 @@ export default function WorkflowAutopilot() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className={`container mx-auto px-4 py-8 max-w-7xl transition-all ${sidebarOpen ? 'mr-[400px]' : ''}`}>
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
@@ -347,6 +349,9 @@ export default function WorkflowAutopilot() {
           </div>
         )}
       </div>
+
+      {/* Autopilot Sidebar */}
+      <AutopilotSidebar onToggle={setSidebarOpen} />
     </div>
   );
 }
