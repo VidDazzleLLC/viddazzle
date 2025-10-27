@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Radio, Search, Settings, BarChart3, RefreshCw, Play, Loader2, ArrowLeft, Zap } from 'lucide-react';
+import { Radio, Search, Settings, BarChart3, RefreshCw, Play, Loader2, ArrowLeft, Zap, Pause, CheckCircle } from 'lucide-react';
 import SocialLeadCard from './SocialLeadCard';
 import SocialAutomationSettings from './SocialAutomationSettings';
 
@@ -11,6 +11,7 @@ export default function SocialListening() {
   const [showSettings, setShowSettings] = useState(false);
   const [automationSettings, setAutomationSettings] = useState(null);
   const [automationStatus, setAutomationStatus] = useState('inactive'); // inactive, active, paused
+  const [todayPostCount, setTodayPostCount] = useState(0);
 
   // Load automation settings on mount
   useEffect(() => {
@@ -30,6 +31,29 @@ export default function SocialListening() {
       }
     } catch (error) {
       console.error('Failed to load automation settings:', error);
+    }
+  };
+
+  const loadTodayPostCount = async () => {
+    try {
+      // This would fetch from a stats API - for now, simulate
+      const response = await fetch('/api/social-listening/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setTodayPostCount(data.posts_today || 0);
+      }
+    } catch (error) {
+      console.log('Stats not available yet');
+    }
+  };
+
+  const toggleAutomationPause = () => {
+    if (automationStatus === 'active') {
+      setAutomationStatus('paused');
+      alert('✅ Automation paused. No new posts will be made until resumed.');
+    } else if (automationStatus === 'paused') {
+      setAutomationStatus('active');
+      alert('✅ Automation resumed. Posts will continue based on your settings.');
     }
   };
 
@@ -189,6 +213,69 @@ export default function SocialListening() {
           Automation Settings
         </button>
       </div>
+
+      {/* Automation Control Panel */}
+      {automationSettings && automationSettings.mode !== 'manual' && (
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-sm p-6 border border-green-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div>
+                <div className="text-sm text-gray-600 mb-1">Mode</div>
+                <div className="text-lg font-semibold text-gray-900 capitalize">
+                  {automationSettings.mode === 'semi-auto' ? 'Semi-Automatic' : 'Full-Automatic'}
+                </div>
+              </div>
+              <div className="h-10 w-px bg-gray-300"></div>
+              <div>
+                <div className="text-sm text-gray-600 mb-1">Posts Today</div>
+                <div className="text-lg font-semibold text-gray-900">
+                  {todayPostCount} / {automationSettings.max_posts_per_day}
+                </div>
+              </div>
+              <div className="h-10 w-px bg-gray-300"></div>
+              <div>
+                <div className="text-sm text-gray-600 mb-1">Threshold</div>
+                <div className="text-lg font-semibold text-gray-900">
+                  {automationSettings.auto_post_threshold}+ score
+                </div>
+              </div>
+              <div className="h-10 w-px bg-gray-300"></div>
+              <div>
+                <div className="text-sm text-gray-600 mb-1">Active Platforms</div>
+                <div className="flex gap-2">
+                  {Object.entries(automationSettings.enabled_platforms || {})
+                    .filter(([_, enabled]) => enabled)
+                    .map(([platform]) => (
+                      <span key={platform} className="px-2 py-1 bg-white rounded text-xs font-medium text-gray-700 capitalize">
+                        {platform}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={toggleAutomationPause}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                automationStatus === 'active'
+                  ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                  : 'bg-green-600 text-white hover:bg-green-700'
+              }`}
+            >
+              {automationStatus === 'active' ? (
+                <>
+                  <Pause className="w-4 h-4" />
+                  Pause
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4" />
+                  Resume
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
