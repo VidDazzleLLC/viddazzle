@@ -1,12 +1,37 @@
-import { useState } from 'react';
-import { Radio, Search, Settings, BarChart3, RefreshCw, Play, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Radio, Search, Settings, BarChart3, RefreshCw, Play, Loader2, ArrowLeft, Zap } from 'lucide-react';
 import SocialLeadCard from './SocialLeadCard';
+import SocialAutomationSettings from './SocialAutomationSettings';
 
 export default function SocialListening() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(false);
   const [testPost, setTestPost] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [automationSettings, setAutomationSettings] = useState(null);
+  const [automationStatus, setAutomationStatus] = useState('inactive'); // inactive, active, paused
+
+  // Load automation settings on mount
+  useEffect(() => {
+    loadAutomationSettings();
+  }, []);
+
+  const loadAutomationSettings = async () => {
+    try {
+      const response = await fetch('/api/social-listening/config');
+      const data = await response.json();
+      if (data.success) {
+        setAutomationSettings(data.settings);
+        // Set automation status based on mode
+        if (data.settings.mode !== 'manual') {
+          setAutomationStatus('active');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load automation settings:', error);
+    }
+  };
 
   const handleAnalyzePost = async () => {
     if (!testPost.trim()) {
@@ -113,8 +138,58 @@ export default function SocialListening() {
   const warmLeads = filterLeads('warm');
   const coldLeads = filterLeads('cold');
 
+  const handleSaveSettings = async (newSettings) => {
+    setAutomationSettings(newSettings);
+    setShowSettings(false);
+    await loadAutomationSettings(); // Reload to confirm save
+  };
+
+  // If showing settings, render settings component
+  if (showSettings) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => setShowSettings(false)}
+            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </button>
+        </div>
+        <SocialAutomationSettings onSave={handleSaveSettings} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Header with Settings and Automation Status */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold text-gray-900">Social Listening</h2>
+          {automationSettings && automationSettings.mode !== 'manual' && (
+            <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+              automationStatus === 'active' ? 'bg-green-100 text-green-700' :
+              automationStatus === 'paused' ? 'bg-yellow-100 text-yellow-700' :
+              'bg-gray-100 text-gray-700'
+            }`}>
+              <Zap className="w-4 h-4" />
+              {automationStatus === 'active' ? 'Automation Active' :
+               automationStatus === 'paused' ? 'Automation Paused' :
+               'Automation Inactive'}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={() => setShowSettings(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+        >
+          <Settings className="w-4 h-4" />
+          Automation Settings
+        </button>
+      </div>
+
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
