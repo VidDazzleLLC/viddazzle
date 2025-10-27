@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Play, Plus, Sparkles, Loader2, CheckCircle, XCircle, Clock, Zap } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import AutopilotSidebar from './AutopilotSidebar';
+import SocialListening from './SocialListening';
 
 export default function WorkflowAutopilot() {
   const [prompt, setPrompt] = useState('');
@@ -121,7 +122,7 @@ export default function WorkflowAutopilot() {
 
         {/* Tabs */}
         <div className="mb-6 flex gap-2 border-b border-gray-200">
-          {['generate', 'workflow', 'execution', 'library'].map((tab) => (
+          {['generate', 'workflow', 'execution', 'library', 'social'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -131,7 +132,7 @@ export default function WorkflowAutopilot() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              {tab}
+              {tab === 'social' ? '🎯 Social Listening' : tab}
             </button>
           ))}
         </div>
@@ -347,6 +348,11 @@ export default function WorkflowAutopilot() {
               )}
             </div>
           </div>
+        )}
+
+        {/* Social Listening Tab */}
+        {activeTab === 'social' && (
+          <SocialListening />
         )}
       </div>
 
