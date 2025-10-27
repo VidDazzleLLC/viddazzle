@@ -233,8 +233,54 @@
       }
     },
     {
+      "name": "blastable_send_email",
+      "description": "Send marketing emails via Blastable.com (uses your lifetime deal credits)",
+      "category": "email_marketing",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "to_email": {
+            "type": "string",
+            "description": "Recipient email address"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Email subject line"
+          },
+          "html_body": {
+            "type": "string",
+            "description": "HTML email body"
+          },
+          "from_name": {
+            "type": "string",
+            "description": "Sender name"
+          },
+          "track_opens": {
+            "type": "boolean",
+            "description": "Track email opens",
+            "default": true
+          }
+        },
+        "required": ["to_email", "subject", "html_body"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message_id": {
+            "type": "string"
+          },
+          "credits_used": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    {
       "name": "email_send",
-      "description": "Send email notifications",
+      "description": "Send email notifications (basic, no quota tracking)",
       "category": "communication",
       "input_schema": {
         "type": "object",
@@ -1081,6 +1127,10 @@
     "ai_sales": {
       "name": "AI-Powered Sales",
       "description": "Tools for AI-driven sentiment analysis, lead qualification, and sales conversations"
+    },
+    "email_marketing": {
+      "name": "Email Marketing",
+      "description": "Tools for sending marketing emails via Blastable.com with quota protection"
     }
   }
 }

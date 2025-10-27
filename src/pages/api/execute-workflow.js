@@ -263,6 +263,8 @@ async function executeTool(tool, input, timeout) {
         return await executeSocialListeningTool(tool, input);
       case 'ai_sales':
         return await executeAISalesTool(tool, input);
+      case 'email_marketing':
+        return await executeEmailMarketingTool(tool, input);
       default:
         return await executeGenericTool(tool, input);
     }
@@ -772,6 +774,27 @@ async function executeAISalesTool(tool, input) {
 
     default:
       throw new Error(`AI Sales tool not implemented: ${tool.name}`);
+  }
+}
+
+/**
+ * Execute Email Marketing tools (Blastable.com)
+ */
+async function executeEmailMarketingTool(tool, input) {
+  switch (tool.name) {
+    case 'blastable_send_email':
+      return await platformIntegrations.blastableSendEmail(
+        input.to_email,
+        input.subject,
+        input.html_body,
+        {
+          from_name: input.from_name,
+          track_opens: input.track_opens
+        }
+      );
+
+    default:
+      throw new Error(`Email marketing tool not implemented: ${tool.name}`);
   }
 }
 

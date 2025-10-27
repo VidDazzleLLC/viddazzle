@@ -10,10 +10,33 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import axios from 'axios';
+import { trackUsage, checkPlatformAvailable } from './quota-manager';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
+
+/**
+ * Quota-aware wrapper for platform API calls
+ * Automatically checks quota before call and tracks usage after
+ */
+async function withQuotaTracking(platform, usageType, apiCall, cost = 1) {
+  // Check if platform is available (not paused)
+  await checkPlatformAvailable(platform, usageType);
+
+  try {
+    // Execute the API call
+    const result = await apiCall();
+
+    // Track usage after successful call
+    await trackUsage(platform, usageType, cost);
+
+    return result;
+  } catch (error) {
+    // Don't track failed calls
+    throw error;
+  }
+}
 
 // ============================================
 // AITABLE.AI CRM INTEGRATION
@@ -23,7 +46,7 @@ const AITABLE_API_BASE = 'https://aitable.ai/fusion/v1';
 const AITABLE_API_KEY = process.env.AITABLE_API_KEY;
 
 export async function aitableCreateRecord(datasheetId, fields) {
-  try {
+  return withQuotaTracking('aitable', 'api_calls', async () => {
     const response = await axios.post(
       `${AITABLE_API_BASE}/datasheets/${datasheetId}/records`,
       {
@@ -41,10 +64,7 @@ export async function aitableCreateRecord(datasheetId, fields) {
       success: true,
       record_id: response.data.data.records[0].recordId
     };
-  } catch (error) {
-    console.error('Aitable create record error:', error);
-    throw new Error(`Aitable CRM error: ${error.response?.data?.message || error.message}`);
-  }
+  }, 1);
 }
 
 export async function aitableGetRecords(datasheetId, options = {}) {
@@ -138,7 +158,8 @@ export async function muraenaSearchPeople(filters) {
 }
 
 export async function muraenaRevealContact(personId) {
-  try {
+  // Contact reveals cost 1 credit each - protect your lifetime credits!
+  return withQuotaTracking('muraena', 'reveals', async () => {
     const response = await axios.post(
       `${MURAENA_API_BASE}/people/reveal`,
       { person_id: personId },
@@ -159,10 +180,7 @@ export async function muraenaRevealContact(personId) {
       company: data.company,
       job_title: data.job_title
     };
-  } catch (error) {
-    console.error('Muraena reveal contact error:', error);
-    throw new Error(`Muraena API error: ${error.response?.data?.message || error.message}`);
-  }
+  }, 1); // Each reveal costs 1 credit
 }
 
 // ============================================
@@ -671,4 +689,44 @@ export async function runFullSalesAutomation(keywords, platforms, offerTypes, au
     console.error('Full sales automation error:', error);
     throw error;
   }
+}
+
+// ============================================
+// BLASTABLE EMAIL MARKETING
+// ============================================
+
+const BLASTABLE_API_BASE = process.env.BLASTABLE_API_URL || 'https://api.blastable.com/v1';
+const BLASTABLE_API_KEY = process.env.BLASTABLE_API_KEY;
+
+/**
+ * Send marketing email via Blastable.com
+ * Uses 1 send credit from your monthly quota
+ */
+export async function blastableSendEmail(toEmail, subject, htmlBody, options = {}) {
+  // Protect your lifetime sends quota!
+  return withQuotaTracking('blastable', 'sends', async () => {
+    const response = await axios.post(
+      `${BLASTABLE_API_BASE}/emails/send`,
+      {
+        to: toEmail,
+        subject,
+        html: htmlBody,
+        from_name: options.from_name || 'Your Business',
+        track_opens: options.track_opens !== false,
+        track_clicks: options.track_clicks !== false,
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${BLASTABLE_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return {
+      success: true,
+      message_id: response.data.message_id || response.data.id,
+      credits_used: 1
+    };
+  }, 1); // Each email send uses 1 credit
 }
