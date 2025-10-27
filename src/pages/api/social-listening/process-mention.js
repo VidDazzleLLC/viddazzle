@@ -152,14 +152,14 @@ export default async function handler(req, res) {
           keywords_matched: keywords_matched?.join(', ') || '',
         };
 
-        const albato Response = await axios.post(albato_webhook_url, crmData, {
+        const albatoResponse = await axios.post(albato_webhook_url, crmData, {
           timeout: 10000
         });
 
         crmResult = {
           success: true,
           message: 'Lead added to Aitable CRM',
-          albato_response: albato Response.data
+          albato_response: albatoResponse.data
         };
 
         console.log('✅ Lead added to CRM successfully');
