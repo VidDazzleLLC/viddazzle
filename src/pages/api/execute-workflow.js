@@ -2,6 +2,9 @@ import { getWorkflow, createExecution, updateExecution, updateWorkflow, logToolU
 import axios from 'axios';
 import mcpToolsData from '@/../../public/config/MCP_TOOLS_DEFINITION.json';
 import { learnFromExecution } from '@/lib/learning-engine';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { spawn } from 'child_process';
 
 // Use imported JSON data
 const mcpTools = mcpToolsData;
@@ -239,6 +242,10 @@ async function executeTool(tool, input, timeout) {
 
   const executionPromise = (async () => {
     switch (tool.category) {
+      case 'filesystem':
+        return await executeFilesystemTool(tool, input);
+      case 'execution':
+        return await executeExecutionTool(tool, input);
       case 'network':
         return await executeNetworkTool(tool, input);
       case 'database':
@@ -253,6 +260,150 @@ async function executeTool(tool, input, timeout) {
   })();
 
   return Promise.race([executionPromise, timeoutPromise]);
+}
+
+/**
+ * Execute filesystem tools (read/write files)
+ */
+async function executeFilesystemTool(tool, input) {
+  // Security: Define allowed base directories
+  const ALLOWED_DIRS = [
+    '/tmp/workflow-files',
+    process.cwd() + '/workflow-files',
+  ];
+
+  // Validate path is within allowed directories
+  function validatePath(filePath) {
+    const resolvedPath = path.resolve(filePath);
+    const isAllowed = ALLOWED_DIRS.some(dir => resolvedPath.startsWith(path.resolve(dir)));
+
+    if (!isAllowed) {
+      throw new Error(`Access denied: Path must be within allowed directories: ${ALLOWED_DIRS.join(', ')}`);
+    }
+
+    return resolvedPath;
+  }
+
+  if (tool.name === 'file_read') {
+    try {
+      const filePath = validatePath(input.path);
+      const content = await fs.readFile(filePath, 'utf-8');
+      const stats = await fs.stat(filePath);
+
+      return {
+        success: true,
+        content,
+        size: stats.size,
+        modified: stats.mtime.toISOString(),
+      };
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        throw new Error(`File not found: ${input.path}`);
+      }
+      throw error;
+    }
+  }
+
+  if (tool.name === 'file_write') {
+    try {
+      const filePath = validatePath(input.path);
+      const dir = path.dirname(filePath);
+
+      // Create directory if it doesn't exist
+      await fs.mkdir(dir, { recursive: true });
+
+      // Write file
+      await fs.writeFile(filePath, input.content, 'utf-8');
+
+      const stats = await fs.stat(filePath);
+
+      return {
+        success: true,
+        bytes_written: stats.size,
+        path: filePath,
+      };
+    } catch (error) {
+      throw new Error(`Failed to write file: ${error.message}`);
+    }
+  }
+
+  throw new Error(`Filesystem tool not implemented: ${tool.name}`);
+}
+
+/**
+ * Execute code execution tools (run Python, JavaScript, Bash)
+ */
+async function executeExecutionTool(tool, input) {
+  if (tool.name === 'execute_code') {
+    const { language, code, timeout = 30000 } = input;
+
+    // Map language to command
+    const commands = {
+      python: ['python3', '-c'],
+      javascript: ['node', '-e'],
+      bash: ['bash', '-c'],
+    };
+
+    if (!commands[language]) {
+      throw new Error(`Unsupported language: ${language}. Supported: ${Object.keys(commands).join(', ')}`);
+    }
+
+    const [cmd, ...baseArgs] = commands[language];
+
+    return new Promise((resolve, reject) => {
+      const startTime = Date.now();
+      let stdout = '';
+      let stderr = '';
+
+      // Spawn process
+      const proc = spawn(cmd, [...baseArgs, code], {
+        timeout,
+        env: {
+          ...process.env,
+          // Limit environment for security
+          PATH: process.env.PATH,
+        },
+      });
+
+      // Capture stdout
+      proc.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      // Capture stderr
+      proc.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      // Handle completion
+      proc.on('close', (exitCode) => {
+        const executionTime = Date.now() - startTime;
+
+        resolve({
+          success: exitCode === 0,
+          stdout: stdout.trim(),
+          stderr: stderr.trim(),
+          exit_code: exitCode,
+          execution_time: executionTime,
+        });
+      });
+
+      // Handle errors
+      proc.on('error', (error) => {
+        reject(new Error(`Execution error: ${error.message}`));
+      });
+
+      // Handle timeout
+      setTimeout(() => {
+        if (!proc.killed) {
+          proc.kill();
+          reject(new Error(`Execution timeout after ${timeout}ms`));
+        }
+      }, timeout);
+    });
+  }
+
+  throw new Error(`Execution tool not implemented: ${tool.name}`);
 }
 
 /**
