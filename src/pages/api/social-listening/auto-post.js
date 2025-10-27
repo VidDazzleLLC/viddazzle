@@ -14,11 +14,32 @@
 import { neon } from '@neondatabase/serverless';
 import axios from 'axios';
 
-const sql = neon(process.env.DATABASE_URL);
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
+  }
+
+  // Validate DATABASE_URL exists
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    console.error('❌ DATABASE_URL not configured');
+    return res.status(500).json({
+      success: false,
+      error: 'Database not configured',
+      message: 'DATABASE_URL environment variable is missing',
+    });
+  }
+
+  let sql;
+  try {
+    sql = neon(databaseUrl);
+  } catch (dbError) {
+    console.error('❌ Failed to connect to database:', dbError);
+    return res.status(500).json({
+      success: false,
+      error: 'Database connection failed',
+      message: dbError.message,
+    });
   }
 
   try {

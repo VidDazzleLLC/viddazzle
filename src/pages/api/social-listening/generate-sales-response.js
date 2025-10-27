@@ -9,13 +9,32 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
+  }
+
+  // Validate ANTHROPIC_API_KEY exists
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    console.error('❌ ANTHROPIC_API_KEY not configured');
+    return res.status(500).json({
+      success: false,
+      error: 'Claude API not configured',
+      message: 'ANTHROPIC_API_KEY environment variable is missing',
+    });
+  }
+
+  let anthropic;
+  try {
+    anthropic = new Anthropic({ apiKey });
+  } catch (initError) {
+    console.error('❌ Failed to initialize Anthropic client:', initError);
+    return res.status(500).json({
+      success: false,
+      error: 'Claude API initialization failed',
+      message: initError.message,
+    });
   }
 
   try {

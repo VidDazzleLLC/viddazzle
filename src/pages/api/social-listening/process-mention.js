@@ -59,7 +59,10 @@ export default async function handler(req, res) {
       timestamp: new Date().toISOString()
     });
 
-    const baseURL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Use dynamic base URL from request headers (works in both dev and production)
+    const apiHost = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const baseURL = `${protocol}://${apiHost}`;
 
     // STEP 1: Analyze sentiment and identify if it's a lead
     console.log('🔍 Step 1: Analyzing sentiment...');

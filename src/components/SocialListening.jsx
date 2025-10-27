@@ -12,6 +12,23 @@ export default function SocialListening() {
   const [automationSettings, setAutomationSettings] = useState(null);
   const [automationStatus, setAutomationStatus] = useState('inactive'); // inactive, active, paused
   const [todayPostCount, setTodayPostCount] = useState(0);
+  const [configError, setConfigError] = useState(null);
+
+  // Validate environment variables on mount
+  useEffect(() => {
+    const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME;
+    const companySolution = process.env.NEXT_PUBLIC_COMPANY_SOLUTION;
+
+    if (!companyName || !companySolution) {
+      setConfigError(
+        '⚠️ Configuration Missing: NEXT_PUBLIC_COMPANY_NAME and NEXT_PUBLIC_COMPANY_SOLUTION must be set in environment variables for AI responses to work properly.'
+      );
+      console.error('Missing environment variables:', {
+        NEXT_PUBLIC_COMPANY_NAME: !!companyName,
+        NEXT_PUBLIC_COMPANY_SOLUTION: !!companySolution,
+      });
+    }
+  }, []);
 
   // Load automation settings on mount
   useEffect(() => {
@@ -188,6 +205,28 @@ export default function SocialListening() {
 
   return (
     <div className="space-y-6">
+      {/* Configuration Error Banner */}
+      {configError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="text-red-600 text-2xl">⚠️</div>
+            <div className="flex-1">
+              <h3 className="text-red-900 font-semibold mb-1">Configuration Error</h3>
+              <p className="text-red-700 text-sm mb-3">{configError}</p>
+              <p className="text-red-600 text-xs">
+                Add these to your .env.local file and restart the server:
+                <br />
+                <code className="bg-red-100 px-2 py-1 rounded mt-1 inline-block">
+                  NEXT_PUBLIC_COMPANY_NAME="Your Company Name"
+                  <br />
+                  NEXT_PUBLIC_COMPANY_SOLUTION="Your solution description"
+                </code>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header with Settings and Automation Status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

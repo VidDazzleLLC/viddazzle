@@ -15,13 +15,38 @@
  * 3. Response generation
  * 4. Auto-posting (if enabled and qualified)
  * 5. CRM logging
+ *
+ * SECURITY: Validates webhook signatures to prevent unauthorized access
  */
 
 import axios from 'axios';
+import crypto from 'crypto';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
+  }
+
+  // SECURITY: Validate webhook signature (optional but recommended)
+  const webhookSecret = process.env.WEBHOOK_SECRET;
+  if (webhookSecret) {
+    const signature = req.headers['x-webhook-signature'];
+    const payload = JSON.stringify(req.body);
+    const expectedSignature = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(payload)
+      .digest('hex');
+
+    if (signature !== expectedSignature) {
+      console.error('❌ Invalid webhook signature');
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Invalid webhook signature',
+      });
+    }
+    console.log('✅ Webhook signature verified');
+  } else {
+    console.warn('⚠️ WEBHOOK_SECRET not set - webhook is unprotected!');
   }
 
   try {
@@ -51,10 +76,21 @@ export default async function handler(req, res) {
       mention_type: mention_type || 'unknown',
     });
 
-    const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
     // STEP 1: Process the mention through our workflow
     console.log('🔄 Processing mention through workflow...');
+
+    // Use relative path for internal API calls (works in both dev and production)
+    const apiHost = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const baseURL = `${protocol}://${apiHost}`;
+
+    // Validate environment variables
+    const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME;
+    const companySolution = process.env.NEXT_PUBLIC_COMPANY_SOLUTION;
+
+    if (!companyName || !companySolution) {
+      console.warn('⚠️ Company info not configured - responses will be generic');
+    }
 
     const workflowResponse = await axios.post(
       `${baseURL}/api/social-listening/process-mention`,
@@ -67,8 +103,8 @@ export default async function handler(req, res) {
           company: 'Unknown',
         },
         post_url: post_url,
-        your_company: process.env.NEXT_PUBLIC_COMPANY_NAME || 'Your Company',
-        your_solution: process.env.NEXT_PUBLIC_COMPANY_SOLUTION || 'Your solution',
+        your_company: companyName || 'Your Company',
+        your_solution: companySolution || 'Your solution',
         albato_webhook_url: process.env.AITABLE_ALBATO_WEBHOOK_URL,
       },
       { timeout: 30000 }

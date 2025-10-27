@@ -10,9 +10,30 @@
 
 import { neon } from '@neondatabase/serverless';
 
-const sql = neon(process.env.DATABASE_URL);
-
 export default async function handler(req, res) {
+  // Validate DATABASE_URL exists
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    console.error('❌ DATABASE_URL not configured');
+    return res.status(500).json({
+      success: false,
+      error: 'Database not configured',
+      message: 'DATABASE_URL environment variable is missing',
+    });
+  }
+
+  let sql;
+  try {
+    sql = neon(databaseUrl);
+  } catch (dbError) {
+    console.error('❌ Failed to connect to database:', dbError);
+    return res.status(500).json({
+      success: false,
+      error: 'Database connection failed',
+      message: dbError.message,
+    });
+  }
+
   try {
     // GET - Load current settings
     if (req.method === 'GET') {
