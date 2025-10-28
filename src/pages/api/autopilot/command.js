@@ -2,10 +2,6 @@ import Anthropic from '@anthropic-ai/sdk';
 import { saveWorkflow, query } from '@/lib/database';
 import mcpToolsData from '@/../../public/config/MCP_TOOLS_DEFINITION.json';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 /**
  * Autopilot command execution endpoint
  * POST /api/autopilot/command
@@ -16,6 +12,27 @@ const anthropic = new Anthropic({
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Validate ANTHROPIC_API_KEY exists
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    console.error('❌ ANTHROPIC_API_KEY not configured');
+    return res.status(500).json({
+      error: 'Claude API not configured',
+      message: 'ANTHROPIC_API_KEY environment variable is missing',
+    });
+  }
+
+  let anthropic;
+  try {
+    anthropic = new Anthropic({ apiKey });
+  } catch (initError) {
+    console.error('❌ Failed to initialize Anthropic client:', initError);
+    return res.status(500).json({
+      error: 'Claude API initialization failed',
+      message: initError.message,
+    });
   }
 
   try {
@@ -68,23 +85,41 @@ Response format (JSON only, no markdown):
     });
 
     const rawResponse = message.content[0].text;
+    console.log('📝 Claude workflow response received:', rawResponse.substring(0, 200) + '...');
 
-    // Parse workflow
+    // Parse workflow with improved error handling
     let workflow;
     try {
-      // Remove markdown code blocks if present
-      const jsonMatch = rawResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        workflow = JSON.parse(jsonMatch[0]);
-      } else {
-        workflow = JSON.parse(rawResponse);
+      // Try multiple parsing strategies
+      let jsonText = rawResponse;
+
+      // Strategy 1: Remove markdown code blocks (```json ... ```)
+      const markdownMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (markdownMatch) {
+        jsonText = markdownMatch[1].trim();
+        console.log('✅ Extracted JSON from markdown code block');
       }
+
+      // Strategy 2: Extract JSON object from text
+      const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        jsonText = jsonMatch[0];
+        console.log('✅ Extracted JSON object from text');
+      }
+
+      // Strategy 3: Parse the JSON
+      workflow = JSON.parse(jsonText);
+      console.log('✅ Successfully parsed workflow JSON');
+
     } catch (parseError) {
-      console.error('Failed to parse workflow:', rawResponse);
+      console.error('❌ Failed to parse workflow. Raw response:', rawResponse);
+      console.error('Parse error:', parseError.message);
+
       return res.status(500).json({
         error: 'Failed to parse workflow',
-        message: parseError.message,
-        rawResponse,
+        message: `Claude returned invalid JSON: ${parseError.message}`,
+        rawResponse: rawResponse.substring(0, 500), // Only return first 500 chars
+        hint: 'Try rephrasing your command or check if the workflow is too complex',
       });
     }
 
@@ -99,8 +134,14 @@ Response format (JSON only, no markdown):
     // Save workflow to database
     const saved = await saveWorkflow(workflow);
 
-    // Execute workflow immediately
-    const executionResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/execute-workflow`, {
+    // Execute workflow immediately using dynamic URL
+    const apiHost = req.headers.host;
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const baseURL = `${protocol}://${apiHost}`;
+
+    console.log('🚀 Executing workflow via:', `${baseURL}/api/execute-workflow`);
+
+    const executionResponse = await fetch(`${baseURL}/api/execute-workflow`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
