@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { saveWorkflow, query } from '@/lib/database';
+import { createWorkflow, query } from '@/lib/database';
 import mcpToolsData from '@/../../public/config/MCP_TOOLS_DEFINITION.json';
 import { trackUsage, checkPlatformAvailable } from '@/lib/quota-manager';
 import { trackMetric } from '@/pages/api/metrics/autopilot';
@@ -336,7 +336,7 @@ Response format (JSON only, no markdown):
     }
 
     // Save workflow to database
-    const saved = await saveWorkflow(workflow);
+    const saved = await createWorkflow(workflow);
 
     // Execute workflow immediately using dynamic URL
     const apiHost = req.headers.host;
