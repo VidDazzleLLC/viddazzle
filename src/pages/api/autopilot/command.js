@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { saveWorkflow, query } from '@/lib/database';
 import mcpToolsData from '@/../../public/config/MCP_TOOLS_DEFINITION.json';
 import { trackUsage, checkPlatformAvailable } from '@/lib/quota-manager';
+import { trackMetric } from '@/pages/api/metrics/autopilot';
 
 // In-memory cache for idempotency and response caching
 const idempotencyCache = new Map();
@@ -27,6 +28,76 @@ setInterval(() => {
 }, 60 * 60 * 1000);
 
 /**
+ * Retry helper for Claude API calls with exponential backoff
+ * Handles rate limits (429), timeouts, and transient errors
+ */
+async function retryClaudeAPI(apiCall, options = {}) {
+  const {
+    maxRetries = 3,
+    initialDelay = 1000,
+    maxDelay = 10000,
+    backoffMultiplier = 2,
+  } = options;
+
+  let lastError;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await apiCall();
+      if (attempt > 0) {
+        console.log(`✅ Claude API call succeeded on attempt ${attempt + 1}`);
+      }
+      return result;
+
+    } catch (error) {
+      lastError = error;
+
+      // Check if we should retry
+      const isRetryable =
+        error.status === 429 || // Rate limit
+        error.status === 500 || // Server error
+        error.status === 502 || // Bad gateway
+        error.status === 503 || // Service unavailable
+        error.status === 504 || // Gateway timeout
+        error.code === 'ETIMEDOUT' || // Timeout
+        error.code === 'ECONNRESET' || // Connection reset
+        error.message?.includes('timeout') ||
+        error.message?.includes('overloaded');
+
+      if (!isRetryable || attempt === maxRetries) {
+        // Not retryable or out of retries
+        break;
+      }
+
+      // Calculate delay with exponential backoff
+      const delay = Math.min(
+        initialDelay * Math.pow(backoffMultiplier, attempt),
+        maxDelay
+      );
+
+      // Check for Retry-After header (standard for 429)
+      let retryAfter = delay;
+      if (error.status === 429 && error.headers?.['retry-after']) {
+        retryAfter = parseInt(error.headers['retry-after']) * 1000;
+      }
+
+      console.warn(
+        `⚠️ Claude API error (attempt ${attempt + 1}/${maxRetries + 1}):`,
+        error.status || error.code,
+        error.message
+      );
+      console.log(`⏳ Retrying in ${retryAfter}ms...`);
+
+      await new Promise(resolve => setTimeout(resolve, retryAfter));
+    }
+  }
+
+  // All retries failed
+  console.error('❌ Claude API call failed after all retries:', lastError);
+  throw lastError;
+}
+
+/**
  * Autopilot command execution endpoint
  * POST /api/autopilot/command
  * Body: { command: string, files?: string[] }
@@ -40,9 +111,14 @@ setInterval(() => {
  * - Response caching to reduce Claude API costs
  */
 export default async function handler(req, res) {
+  const startTime = Date.now();
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  // Track total requests
+  trackMetric('totalRequests', 1);
 
   // FEATURE 1: Idempotency - Prevent duplicate workflow creation
   const idempotencyKey = req.headers['x-idempotency-key'] || `cmd_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -51,6 +127,11 @@ export default async function handler(req, res) {
   if (idempotencyCache.has(idempotencyKey)) {
     const cached = idempotencyCache.get(idempotencyKey);
     console.log('✅ Returning cached result for idempotency key:', idempotencyKey);
+
+    // Track cache hit
+    trackMetric('idempotencyCacheHits', 1);
+    trackMetric('totalResponseTime', Date.now() - startTime);
+
     return res.status(200).json({
       ...cached.result,
       cached: true,
@@ -85,6 +166,9 @@ export default async function handler(req, res) {
   if (responseCache.has(cacheKey)) {
     const cached = responseCache.get(cacheKey);
     console.log('✅ Returning cached workflow for identical command');
+
+    // Track response cache hit
+    trackMetric('responseCacheHits', 1);
 
     // Still execute the workflow (it's a new request) but use cached workflow definition
     const apiHost = req.headers.host;
@@ -124,6 +208,9 @@ export default async function handler(req, res) {
       timestamp: Date.now(),
     });
 
+    // Track response time
+    trackMetric('totalResponseTime', Date.now() - startTime);
+
     return res.status(200).json(result);
   }
 
@@ -155,11 +242,13 @@ export default async function handler(req, res) {
       fileContext = `\n\nUploaded files available for use:\n${files.map((f, i) => `${i + 1}. ${f}`).join('\n')}`;
     }
 
-    // Generate workflow using Claude
-    const message = await anthropic.messages.create({
-      model: 'claude-opus-4-20250514',
-      max_tokens: 4096,
-      system: `You are an expert workflow automation assistant. Your job is to convert natural language commands into executable workflows.
+    // Generate workflow using Claude with retry logic
+    console.log('🤖 Calling Claude API to generate workflow...');
+    const message = await retryClaudeAPI(async () => {
+      return await anthropic.messages.create({
+        model: 'claude-opus-4-20250514',
+        max_tokens: 4096,
+        system: `You are an expert workflow automation assistant. Your job is to convert natural language commands into executable workflows.
 
 Available MCP Tools:
 ${JSON.stringify(mcpToolsData.tools, null, 2)}
@@ -183,13 +272,21 @@ Response format (JSON only, no markdown):
     }
   ]
 }${fileContext}`,
-      messages: [
-        {
-          role: 'user',
-          content: command,
-        },
-      ],
+        messages: [
+          {
+            role: 'user',
+            content: command,
+          },
+        ],
+      });
+    }, {
+      maxRetries: 3,
+      initialDelay: 1000,
+      maxDelay: 10000,
     });
+
+    // Track successful Claude API call
+    trackMetric('claudeAPICalls', 1);
 
     const rawResponse = message.content[0].text;
     console.log('📝 Claude workflow response received:', rawResponse.substring(0, 200) + '...');
@@ -288,11 +385,19 @@ Response format (JSON only, no markdown):
     });
     console.log('💾 Cached result for idempotency key:', idempotencyKey);
 
+    // Track response time
+    trackMetric('totalResponseTime', Date.now() - startTime);
+
     // Return combined result
     return res.status(200).json(result);
 
   } catch (error) {
     console.error('Autopilot command error:', error);
+
+    // Track error
+    trackMetric('errors', 1);
+    trackMetric('totalResponseTime', Date.now() - startTime);
+
     return res.status(500).json({
       error: 'Command execution failed',
       message: error.message,

@@ -58,6 +58,13 @@ export const QUOTA_LIMITS = {
     enabled: true,
   },
 
+  // Autopilot - Workflow Command API
+  autopilot: {
+    commands: process.env.AUTOPILOT_MONTHLY_LIMIT || 1000, // Monthly command limit
+    cost_per_command: 0.40, // Estimated cost per Claude Opus 4 call (for tracking only)
+    enabled: true,
+  },
+
   // Warning thresholds (percentage)
   warning_threshold: 0.80, // Warn at 80%
   pause_threshold: 1.0, // Auto-pause at 100%
@@ -84,13 +91,34 @@ export async function initializeQuotaTracking() {
       UNIQUE(platform, usage_type, month_year)
     );
 
+    -- Performance indexes for common query patterns
+    -- Note: UNIQUE constraint on (platform, usage_type, month_year) already creates a composite index
+
+    -- Index 1: Quick lookup of current month's data (used in most queries)
     CREATE INDEX IF NOT EXISTS idx_quota_month ON quota_tracking(month_year);
+
+    -- Index 2: Platform-specific queries (used in getQuotaStatus)
     CREATE INDEX IF NOT EXISTS idx_quota_platform ON quota_tracking(platform);
+
+    -- Index 3: Fast lookup of paused quotas (used in checkPlatformAvailable - runs on EVERY API call)
+    CREATE INDEX IF NOT EXISTS idx_quota_paused_month ON quota_tracking(is_paused, month_year)
+    WHERE is_paused = TRUE;
+
+    -- Index 4: Time-series analytics (used in dashboard and historical queries)
+    CREATE INDEX IF NOT EXISTS idx_quota_month_updated ON quota_tracking(month_year, last_updated DESC);
+
+    -- Index 5: Usage analytics (for finding high-usage platforms quickly)
+    CREATE INDEX IF NOT EXISTS idx_quota_usage_count ON quota_tracking(usage_count DESC)
+    WHERE usage_count > 0;
+
+    -- Index 6: Warning status lookup (for finding platforms near limits)
+    CREATE INDEX IF NOT EXISTS idx_quota_warnings ON quota_tracking(month_year, warnings_sent)
+    WHERE warnings_sent > 0;
   `;
 
   try {
     await query(createTableQuery);
-    console.log('✅ Quota tracking initialized');
+    console.log('✅ Quota tracking initialized with performance indexes');
   } catch (error) {
     console.error('Error initializing quota tracking:', error);
   }
@@ -164,6 +192,9 @@ async function checkQuotaLimits(platform, usageType, currentUsage) {
       break;
     case 'twitter':
       limit = platformConfig.monthly_tweets;
+      break;
+    case 'autopilot':
+      limit = platformConfig.commands;
       break;
     default:
       return;
@@ -265,6 +296,9 @@ export async function getQuotaStatus(platform = null) {
         case 'twitter':
           limit = platformConfig.monthly_tweets;
           break;
+        case 'autopilot':
+          limit = platformConfig.commands;
+          break;
       }
     }
 
@@ -333,24 +367,100 @@ export async function getQuotaDashboard() {
 
 /**
  * Check if platform is available before API call
+ * Returns structured response instead of throwing to allow graceful handling
  */
 export async function checkPlatformAvailable(platform, usageType) {
   const monthYear = getCurrentMonthYear();
 
-  const result = await query(
-    `SELECT is_paused, usage_count FROM quota_tracking
-     WHERE platform = $1 AND usage_type = $2 AND month_year = $3`,
-    [platform, usageType, monthYear]
-  );
-
-  if (result.rows.length > 0 && result.rows[0].is_paused) {
-    throw new Error(
-      `Platform ${platform} (${usageType}) is currently paused due to quota limits. ` +
-      `Monthly reset occurs on the 1st of each month.`
+  try {
+    const result = await query(
+      `SELECT is_paused, usage_count FROM quota_tracking
+       WHERE platform = $1 AND usage_type = $2 AND month_year = $3`,
+      [platform, usageType, monthYear]
     );
-  }
 
-  return true;
+    // Get platform limits
+    const platformConfig = QUOTA_LIMITS[platform];
+    let limit = 0;
+
+    if (platformConfig) {
+      switch (platform) {
+        case 'blastable':
+          limit = usageType === 'sends' ? platformConfig.monthly_sends : platformConfig.monthly_contacts;
+          break;
+        case 'albato':
+          limit = platformConfig.monthly_operations;
+          break;
+        case 'aitable':
+          limit = platformConfig.monthly_ai_credits;
+          break;
+        case 'muraena':
+          limit = platformConfig.monthly_credits;
+          break;
+        case 'twitter':
+          limit = platformConfig.monthly_tweets;
+          break;
+        case 'autopilot':
+          limit = platformConfig?.commands || 1000; // Default limit
+          break;
+        default:
+          // Unknown platform - allow by default
+          return {
+            available: true,
+            message: 'Quota tracking not configured for this platform',
+          };
+      }
+    }
+
+    if (result.rows.length > 0) {
+      const { is_paused, usage_count } = result.rows[0];
+
+      if (is_paused) {
+        return {
+          available: false,
+          message: `Platform ${platform} (${usageType}) is currently paused due to quota limits. Monthly reset occurs on the 1st of each month.`,
+          usage: {
+            current: usage_count,
+            limit: limit,
+            percentage: limit > 0 ? Math.round((usage_count / limit) * 100) : 0,
+          },
+        };
+      }
+
+      // Platform exists and is not paused
+      return {
+        available: true,
+        message: 'Quota available',
+        usage: {
+          current: usage_count,
+          limit: limit,
+          remaining: Math.max(0, limit - usage_count),
+          percentage: limit > 0 ? Math.round((usage_count / limit) * 100) : 0,
+        },
+      };
+    }
+
+    // First use - no tracking record yet
+    return {
+      available: true,
+      message: 'First usage for this period',
+      usage: {
+        current: 0,
+        limit: limit,
+        remaining: limit,
+        percentage: 0,
+      },
+    };
+
+  } catch (error) {
+    console.error('Error checking platform availability:', error);
+    // On error, allow the request (fail open for better UX)
+    return {
+      available: true,
+      message: 'Could not check quota status, allowing request',
+      error: error.message,
+    };
+  }
 }
 
 /**
