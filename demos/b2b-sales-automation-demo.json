@@ -1,0 +1,278 @@
+{
+  "name": "B2B Sales Autopilot Demo",
+  "description": "Complete sales automation: Find decision makers → Enrich contacts → AI qualify → Personalized outreach → CRM tracking",
+  "target_market": "SaaS companies, marketing agencies, B2B service providers",
+  "pricing_example": "$697/month or $5000 one-time setup",
+  "roi": "Generates 20-50 qualified leads per week, saves 15+ hours of manual work",
+
+  "workflow": {
+    "name": "B2B Sales Autopilot - Decision Makers",
+    "description": "Find CMOs at tech companies, qualify with AI, send personalized outreach",
+    "steps": [
+      {
+        "id": "step1",
+        "name": "Search for Decision Makers",
+        "tool": "muraena_search_people",
+        "input": {
+          "job_title": "Chief Marketing Officer",
+          "company_size": "50-200",
+          "industry": "Software",
+          "location": "United States",
+          "limit": 25
+        },
+        "description": "Find 25 CMOs at mid-size software companies"
+      },
+      {
+        "id": "step2",
+        "name": "Loop Through Prospects",
+        "tool": "loop_iteration",
+        "input": {
+          "items": "{{step1.profiles}}",
+          "max_iterations": 25
+        },
+        "description": "Process each prospect individually"
+      },
+      {
+        "id": "step3",
+        "name": "Reveal Contact Information",
+        "tool": "muraena_reveal_contact",
+        "input": {
+          "person_id": "{{step2.current_item.id}}"
+        },
+        "description": "Get email and phone for this prospect"
+      },
+      {
+        "id": "step4",
+        "name": "Monitor Their Social Activity",
+        "tool": "social_monitor_mentions",
+        "input": {
+          "keywords": ["{{step3.company}}", "marketing automation", "growth challenges"],
+          "platforms": ["twitter", "linkedin"],
+          "limit": 5
+        },
+        "description": "Find recent posts that indicate pain points"
+      },
+      {
+        "id": "step5",
+        "name": "AI Lead Qualification",
+        "tool": "social_identify_lead",
+        "input": {
+          "post_content": "{{step4.mentions[0].text}}",
+          "user_profile": {
+            "name": "{{step3.name}}",
+            "company": "{{step3.company}}",
+            "job_title": "{{step3.job_title}}"
+          },
+          "business_context": "We provide AI-powered sales automation that helps B2B companies generate 3x more qualified leads while reducing manual work by 80%"
+        },
+        "description": "Use AI to score the lead and identify pain points"
+      },
+      {
+        "id": "step6",
+        "name": "Branch on Lead Score",
+        "tool": "conditional_branch",
+        "input": {
+          "condition": "{{step5.lead_score}} >= 7",
+          "context": {
+            "lead_score": "{{step5.lead_score}}",
+            "is_qualified": "{{step5.is_qualified_lead}}"
+          }
+        },
+        "description": "Only proceed if lead score is 7+ out of 10"
+      },
+      {
+        "id": "step7",
+        "name": "Generate Personalized Sales Message",
+        "tool": "ai_generate_sales_response",
+        "input": {
+          "lead_info": {
+            "name": "{{step3.name}}",
+            "company": "{{step3.company}}",
+            "pain_points": "{{step5.pain_points}}",
+            "recent_activity": "{{step4.mentions[0].text}}"
+          },
+          "offer_type": "general",
+          "tone": "consultative"
+        },
+        "description": "Create hyper-personalized outreach based on AI insights",
+        "condition": "{{step6.result}} == true"
+      },
+      {
+        "id": "step8",
+        "name": "Send Personalized Email",
+        "tool": "blastable_send_email",
+        "input": {
+          "to_email": "{{step3.email}}",
+          "subject": "{{step7.subject_line}}",
+          "html_body": "{{step7.message}}",
+          "from_name": "Sarah Chen - VidDazzle Growth",
+          "track_opens": true
+        },
+        "description": "Send via Blastable with open tracking",
+        "condition": "{{step6.result}} == true"
+      },
+      {
+        "id": "step9",
+        "name": "Add to CRM",
+        "tool": "aitable_create_record",
+        "input": {
+          "datasheet_id": "dst1234567890",
+          "fields": {
+            "Name": "{{step3.name}}",
+            "Email": "{{step3.email}}",
+            "Phone": "{{step3.phone}}",
+            "Company": "{{step3.company}}",
+            "Job Title": "{{step3.job_title}}",
+            "Lead Score": "{{step5.lead_score}}",
+            "Pain Points": "{{step5.pain_points}}",
+            "Status": "Outreach Sent",
+            "Message Sent": "{{step7.message}}",
+            "Date Added": "{{current_timestamp}}"
+          }
+        },
+        "description": "Track in Aitable CRM",
+        "condition": "{{step6.result}} == true"
+      },
+      {
+        "id": "step10",
+        "name": "Slack Notification",
+        "tool": "slack_message",
+        "input": {
+          "channel": "#sales-leads",
+          "text": "🎯 New qualified lead!\n\n*{{step3.name}}* - {{step3.job_title}} at {{step3.company}}\n\n**Lead Score:** {{step5.lead_score}}/10\n**Pain Points:** {{step5.pain_points}}\n**Email Sent:** ✅\n**CRM Record:** {{step9.record_id}}"
+        },
+        "description": "Notify sales team in real-time",
+        "condition": "{{step6.result}} == true"
+      },
+      {
+        "id": "step11",
+        "name": "Wait 3 Days",
+        "tool": "wait_delay",
+        "input": {
+          "duration": 259200000
+        },
+        "description": "Wait 72 hours before follow-up",
+        "condition": "{{step6.result}} == true"
+      },
+      {
+        "id": "step12",
+        "name": "Check Email Open Status",
+        "tool": "database_query",
+        "input": {
+          "table": "email_tracking",
+          "operation": "select",
+          "filter": {
+            "message_id": "{{step8.message_id}}"
+          }
+        },
+        "description": "Check if they opened the email",
+        "condition": "{{step6.result}} == true"
+      },
+      {
+        "id": "step13",
+        "name": "AI Follow-Up Message",
+        "tool": "ai_generate_sales_response",
+        "input": {
+          "lead_info": {
+            "name": "{{step3.name}}",
+            "company": "{{step3.company}}",
+            "opened_email": "{{step12.data[0].opened}}",
+            "days_since_contact": 3
+          },
+          "offer_type": "general",
+          "tone": "friendly"
+        },
+        "description": "Generate contextual follow-up",
+        "condition": "{{step6.result}} == true"
+      },
+      {
+        "id": "step14",
+        "name": "Send Follow-Up Email",
+        "tool": "blastable_send_email",
+        "input": {
+          "to_email": "{{step3.email}}",
+          "subject": "{{step13.subject_line}}",
+          "html_body": "{{step13.message}}",
+          "from_name": "Sarah Chen - VidDazzle Growth",
+          "track_opens": true
+        },
+        "description": "Automated follow-up",
+        "condition": "{{step6.result}} == true"
+      },
+      {
+        "id": "step15",
+        "name": "Update CRM Status",
+        "tool": "aitable_update_record",
+        "input": {
+          "datasheet_id": "dst1234567890",
+          "record_id": "{{step9.record_id}}",
+          "fields": {
+            "Status": "Follow-up Sent",
+            "Follow Up Date": "{{current_timestamp}}",
+            "Email Opened": "{{step12.data[0].opened}}"
+          }
+        },
+        "description": "Update CRM with latest activity",
+        "condition": "{{step6.result}} == true"
+      }
+    ]
+  },
+
+  "demo_script": {
+    "intro": "Let me show you how our AI Sales Autopilot finds and converts your ideal customers while you sleep...",
+    "step_by_step": [
+      "1. **Finding Decision Makers**: We search 140M+ B2B profiles for your exact target (CMOs at software companies)",
+      "2. **Contact Enrichment**: Reveal verified emails and phone numbers instantly",
+      "3. **Social Intelligence**: Monitor their LinkedIn/Twitter for buying signals and pain points",
+      "4. **AI Qualification**: Our AI analyzes their activity and scores each lead 0-10",
+      "5. **Personalized Outreach**: Generate hyper-personalized emails that reference their specific challenges",
+      "6. **Multi-Channel Engagement**: Email + LinkedIn + Twitter outreach in one workflow",
+      "7. **CRM Automation**: Every lead is automatically tracked in your CRM with full context",
+      "8. **Real-Time Alerts**: Your team gets Slack notifications for hot leads",
+      "9. **Smart Follow-Ups**: AI sends contextual follow-ups based on email opens and engagement",
+      "10. **Full Analytics**: Track open rates, response rates, and pipeline value"
+    ]
+  },
+
+  "client_pricing": {
+    "tier1_startup": {
+      "price": "$497/month",
+      "includes": "Up to 500 leads/month, 5 workflows, email support",
+      "target": "Startups, solo founders, small agencies"
+    },
+    "tier2_growth": {
+      "price": "$997/month",
+      "includes": "Up to 2,000 leads/month, unlimited workflows, Slack integration, priority support",
+      "target": "Growing B2B companies, mid-size agencies"
+    },
+    "tier3_enterprise": {
+      "price": "$2,497/month",
+      "includes": "Unlimited leads, custom workflows, dedicated account manager, white-label option",
+      "target": "Large enterprises, agency white-label partners"
+    },
+    "one_time_setup": {
+      "price": "$5,000-$15,000",
+      "includes": "Custom automation build, CRM integration, training, 3 months included",
+      "target": "Clients who want fully custom automation"
+    }
+  },
+
+  "roi_calculator": {
+    "cost_per_month": "$997",
+    "leads_generated": "200 qualified leads",
+    "close_rate": "5% (10 customers)",
+    "average_deal_value": "$5,000",
+    "monthly_revenue": "$50,000",
+    "roi": "5,012% (50x return)",
+    "time_saved": "60 hours/month (1.5 FTE)",
+    "cost_savings": "$4,500/month in labor"
+  },
+
+  "how_to_test": {
+    "command": "POST /api/autopilot/command",
+    "body": {
+      "command": "Find 5 CMOs at software companies in the US, get their contact info, analyze their recent LinkedIn posts with AI, send them a personalized email about our sales automation platform, and add them to our Aitable CRM"
+    },
+    "response": "Generates this exact workflow and executes it in ~30 seconds"
+  }
+}
