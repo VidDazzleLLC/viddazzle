@@ -30,6 +30,7 @@
     "@types/node": "^20.11.5",
     "@types/react": "^18.2.48",
     "autoprefixer": "^10.4.17",
+    "babel-loader": "^10.0.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
     "postcss": "^8.4.33",
