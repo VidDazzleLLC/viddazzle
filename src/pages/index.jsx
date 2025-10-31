@@ -16,3 +16,18 @@ export default function Home() {
     </>
   );
 }
+<div style={{ textAlign: 'center', marginTop: '40px' }}>
+  <a href="https://buy.stripe.com/test_000" 
+     style={{
+       backgroundColor: '#10b981',
+       color: 'white',
+       padding: '16px 32px',
+       borderRadius: '8px',
+       fontWeight: 'bold',
+       textDecoration: 'none',
+       fontSize: '18px',
+       display: 'inline-block'
+     }}>
+    $49/month — Start Free Trial
+  </a>
+</div>
