@@ -31,16 +31,13 @@ body {
   width: 8px;
   height: 8px;
 }
-
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
 }
-
 ::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 4px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
@@ -49,7 +46,6 @@ body {
 pre {
   overflow-x: auto;
 }
-
 code {
   font-family: 'Courier New', Courier, monospace;
 }
@@ -65,7 +61,6 @@ code {
     transform: translateY(0);
   }
 }
-
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-in-out;
 }
@@ -74,23 +69,18 @@ code {
 .card {
   @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
 }
-
 .btn {
   @apply px-4 py-2 rounded-lg font-medium transition-colors;
 }
-
 .btn-primary {
   @apply bg-blue-600 text-white hover:bg-blue-700;
 }
-
 .btn-secondary {
   @apply bg-gray-200 text-gray-900 hover:bg-gray-300;
 }
-
 .btn-success {
   @apply bg-green-600 text-white hover:bg-green-700;
 }
-
 .btn-danger {
   @apply bg-red-600 text-white hover:bg-red-700;
 }
