@@ -124,10 +124,6 @@ export default function Landing() {
          }}>
         CLAIM BLACK FRIDAY DEAL NOW
       </a>
-
-      <p style={{ marginTop: '20px', fontSize: '1.1rem', opacity: 0.8 }}>
-        Cancel anytime • 30-day money-back
-      </p>
     </div>
   );
 }
