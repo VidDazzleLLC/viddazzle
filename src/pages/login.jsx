@@ -1,4 +1,36 @@
+import { useState } from 'react';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth } from '@/lib/firebase'; // Add this file in Step 4
+
 export default function Login() {
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      window.location.href = '/app';
+    } catch (error) {
+      alert('Login failed: ' + error.message);
+    }
+    setLoading(false);
+  };
+
+  const signInWithGoogle = async () => {
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      window.location.href = '/app';
+    } catch (error) {
+      alert('Google login failed: ' + error.message);
+    }
+    setLoading(false);
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -22,14 +54,16 @@ export default function Login() {
           Welcome to Autopilot
         </h1>
         <p style={{ marginBottom: '30px' }}>
-          Sign up to start scoring leads
+          Sign in to access your dashboard
         </p>
         
-        {/* Email/Password Signup */}
-        <form style={{ marginBottom: '20px' }}>
+        {/* Email/Password Login */}
+        <form onSubmit={handleEmailLogin} style={{ marginBottom: '20px' }}>
           <input
             type="email"
             placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             style={{
               width: '100%',
               padding: '12px',
@@ -38,10 +72,13 @@ export default function Login() {
               border: '1px solid #ddd',
               fontSize: '16px'
             }}
+            required
           />
           <input
             type="password"
-            placeholder="Password (min 6 chars)"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             style={{
               width: '100%',
               padding: '12px',
@@ -49,8 +86,10 @@ export default function Login() {
               border: '1px solid #ddd',
               fontSize: '16px'
             }}
+            required
+            minLength="6"
           />
-          <button type="submit" style={{
+          <button type="submit" disabled={loading} style={{
             width: '100%',
             background: '#667eea',
             color: 'white',
@@ -61,14 +100,14 @@ export default function Login() {
             fontWeight: 'bold',
             marginTop: '10px'
           }}>
-            Sign Up
+          {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <p style={{ marginBottom: '20px' }}>or</p>
 
         {/* Google Auth */}
-        <button style={{
+        <button onClick={signInWithGoogle} disabled={loading} style={{
           width: '100%',
           background: '#4285f4',
           color: 'white',
@@ -78,11 +117,11 @@ export default function Login() {
           fontSize: '16px',
           fontWeight: 'bold'
         }}>
-          Sign Up with Google
+          {loading ? 'Loading...' : 'Sign in with Google'}
         </button>
 
         <p style={{ marginTop: '20px', fontSize: '14px' }}>
-          Already have an account? <a href="#" style={{ color: '#667eea' }}>Sign in</a>
+          New? <a href="#" style={{ color: '#667eea' }}>Sign up</a>
         </p>
       </div>
     </div>
