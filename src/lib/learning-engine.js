@@ -355,7 +355,7 @@ Format as JSON array with structure:
 /**
  * Get tool performance statistics
  */
-async function getToolPerformanceStats() {
+export async function getToolPerformanceStats() {
   try {
     const result = await query(`
       SELECT
