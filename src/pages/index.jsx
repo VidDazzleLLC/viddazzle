@@ -27,35 +27,6 @@ export default function Landing() {
         </button>
         <p className="mt-4 text-sm opacity-75">No credit card required</p>
       </section>
-
-      <section className="py-16 bg-white/10">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-12">How You Make Money</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white/10 rounded-2xl p-6">
-              <h3 className="text-2xl font-bold mb-3 text-green-400">$0 → $490</h3>
-              <p>10 customers × $49 = <strong>$490/month</strong></p>
-            </div>
-            <div className="bg-white/10 rounded-2xl p-6">
-              <h3 className="text-2xl font-bold mb-3 text-cyan-400">1 Post = 5 Leads</h3>
-              <p>AI finds hidden buyers in comments</p>
-            </div>
-            <div className="bg-white/10 rounded-2xl p-6">
-              <h3 className="text-2xl font-bold mb-3 text-purple-400">Close 2x Faster</h3>
-              <p>AI replies instantly while they’re hot</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 text-center">
-        <button
-          onClick={handleCheckout}
-          className="bg-gradient-to-r from-green-400 to-cyan-500 text-purple-900 px-12 py-6 rounded-full text-2xl font-bold hover:scale-110 transition transform"
-        >
-          Get Autopilot — $49/month
-        </button>
-      </section>
     </div>
   );
 }
