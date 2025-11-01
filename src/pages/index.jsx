@@ -126,7 +126,7 @@ export default function Landing() {
       </a>
 
       <p style={{ marginTop: '20px', fontSize: '1.1rem', opacity: 0.8 }}>
-        <strong>7-day free trial</strong> • Cancel anytime • 30-day money-back
+        Cancel anytime • 30-day money-back
       </p>
     </div>
   );
