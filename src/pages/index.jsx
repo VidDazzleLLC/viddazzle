@@ -4,7 +4,7 @@ export default function Landing() {
   const [timeLeft, setTimeLeft] = useState({});
 
   useEffect(() => {
-    const target = new Date('2025-11-28T23:59:59').getTime(); // Black Friday 2025 Midnight
+    const target = new Date('2025-11-28T23:59:59').getTime();
 
     const interval = setInterval(() => {
       const now = new Date().getTime();
@@ -33,21 +33,8 @@ export default function Landing() {
       color: 'white',
       fontFamily: 'system-ui, sans-serif',
       textAlign: 'center',
-      padding: '40px 20px',
-      position: 'relative',
-      overflow: 'hidden'
+      padding: '40px 20px'
     }}>
-      {/* Background Glow */}
-      <div style={{
-        position: 'absolute',
-        top: '-50%',
-        left: '-50%',
-        width: '200%',
-        height: '200%',
-        background: 'radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%)',
-        animation: 'pulse 6s infinite'
-      }}></div>
-
       {/* Header */}
       <h1 style={{
         fontSize: '6rem',
@@ -56,7 +43,6 @@ export default function Landing() {
         background: 'linear-gradient(to right, #60a5fa, #a78bfa, #f472b6)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
-        textShadow: '0 0 30px rgba(96,165,250,0.5)',
         letterSpacing: '-2px'
       }}>
         AUTOPILOT
@@ -77,10 +63,11 @@ export default function Landing() {
         backdropFilter: 'blur(10px)'
       }}>
         <p style={{ fontSize: '1.6rem', fontWeight: 'bold', color: '#86efac' }}>
-          🔥 WOW FEATURE: <span style={{ color: 'white' }}>1 Post = 10 Leads in 24h</span>
+          🔥 WOW: <span style={{ color: 'white' }}>Up to 10 Leads Per Post</span>
         </p>
         <p style={{ fontSize: '1.2rem', opacity: 0.9 }}>
-          Our AI finds hidden buyers in comments — <strong>average user gets 30 leads/month</strong>
+          Our AI finds hidden buyers in comments — <strong>average user gets up to 30 leads/month</strong>.<br />
+          <strong>Let Autopilot promote your affiliate links while you sleep.</strong>
         </p>
       </div>
 
@@ -93,7 +80,7 @@ export default function Landing() {
           $49/month
         </p>
         <p style={{ fontSize: '1.3rem', color: '#fbbf24', fontWeight: 'bold' }}>
-          BLACK FRIDAY DEAL — ONLY 50 SPOTS
+          BLACK FRIDAY — ONLY 50 SPOTS
         </p>
       </div>
 
@@ -133,23 +120,14 @@ export default function Landing() {
            fontWeight: 'bold',
            textDecoration: 'none',
            boxShadow: '0 15px 35px rgba(239,68,68,0.4)',
-           display: 'inline-block',
-           animation: 'pulse 2s infinite'
+           display: 'inline-block'
          }}>
         CLAIM BLACK FRIDAY DEAL NOW
       </a>
 
       <p style={{ marginTop: '20px', fontSize: '1.1rem', opacity: 0.8 }}>
-        <strong>Free 7-day trial</strong> • Cancel anytime • 30-day money-back
+        <strong>7-day free trial</strong> • Cancel anytime • 30-day money-back
       </p>
-
-      <style jsx>{`
-        @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); }
-        }
-      `}</style>
     </div>
   );
 }
