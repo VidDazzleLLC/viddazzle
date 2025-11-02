@@ -1,7 +1,7 @@
-import { OpenAI } from 'openai';
+import { Grok } from 'grok-sdk';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const grok = new Grok({
+  apiKey: process.env.XAI_API_KEY,
 });
 
 export default async function handler(req, res) {
@@ -16,8 +16,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+    const completion = await grok.chat.completions.create({
+      model: 'grok-beta',
       messages: [
         {
           role: 'system',
