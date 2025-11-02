@@ -1,34 +1,29 @@
 import { useState } from 'react';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '@/lib/firebase'; // Add this file in Step 4
 
 export default function Login() {
-  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleEmailLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
+    // Placeholder — in real app, this would call Firebase
+    setTimeout(() => {
+      alert('Login successful! Redirecting to app...');
       window.location.href = '/app';
-    } catch (error) {
-      alert('Login failed: ' + error.message);
-    }
-    setLoading(false);
+      setLoading(false);
+    }, 1000);
   };
 
-  const signInWithGoogle = async () => {
+  const handleGoogleLogin = () => {
     setLoading(true);
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
+    // Placeholder for Google Auth
+    setTimeout(() => {
+      alert('Google login successful! Redirecting to app...');
       window.location.href = '/app';
-    } catch (error) {
-      alert('Google login failed: ' + error.message);
-    }
-    setLoading(false);
+      setLoading(false);
+    }, 1000);
   };
 
   return (
@@ -58,7 +53,7 @@ export default function Login() {
         </p>
         
         {/* Email/Password Login */}
-        <form onSubmit={handleEmailLogin} style={{ marginBottom: '20px' }}>
+        <form onSubmit={handleLogin} style={{ marginBottom: '20px' }}>
           <input
             type="email"
             placeholder="Email"
@@ -87,7 +82,6 @@ export default function Login() {
               fontSize: '16px'
             }}
             required
-            minLength="6"
           />
           <button type="submit" disabled={loading} style={{
             width: '100%',
@@ -100,14 +94,14 @@ export default function Login() {
             fontWeight: 'bold',
             marginTop: '10px'
           }}>
-          {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <p style={{ marginBottom: '20px' }}>or</p>
 
-        {/* Google Auth */}
-        <button onClick={signInWithGoogle} disabled={loading} style={{
+        {/* Google Login */}
+        <button onClick={handleGoogleLogin} disabled={loading} style={{
           width: '100%',
           background: '#4285f4',
           color: 'white',
