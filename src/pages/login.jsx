@@ -1,29 +1,39 @@
 import { useState } from 'react';
+import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function Login() {
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  // EMAIL/PASSWORD LOGIN
+  const handleEmailLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Placeholder — in real app, this would call Firebase
-    setTimeout(() => {
-      alert('Login successful! Redirecting to app...');
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       window.location.href = '/app';
-      setLoading(false);
-    }, 1000);
+    } catch (error) {
+      alert('Login failed: ' + error.message);
+    }
+    setLoading(false);
   };
 
-  const handleGoogleLogin = () => {
+  // GOOGLE LOGIN — FORCES ACCOUNT PICKER
+  const signInWithGoogle = async () => {
     setLoading(true);
-    // Placeholder for Google Auth
-    setTimeout(() => {
-      alert('Google login successful! Redirecting to app...');
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+      prompt: 'select_account'  // This forces the Google account chooser
+    });
+    try {
+      await signInWithPopup(auth, provider);
       window.location.href = '/app';
-      setLoading(false);
-    }, 1000);
+    } catch (error) {
+      alert('Google login failed: ' + error.message);
+    }
+    setLoading(false);
   };
 
   return (
@@ -51,9 +61,9 @@ export default function Login() {
         <p style={{ marginBottom: '30px' }}>
           Sign in to access your dashboard
         </p>
-        
-        {/* Email/Password Login */}
-        <form onSubmit={handleLogin} style={{ marginBottom: '20px' }}>
+
+        {/* EMAIL/PASSWORD LOGIN */}
+        <form onSubmit={handleEmailLogin} style={{ marginBottom: '20px' }}>
           <input
             type="email"
             placeholder="Email"
@@ -83,34 +93,42 @@ export default function Login() {
             }}
             required
           />
-          <button type="submit" disabled={loading} style={{
-            width: '100%',
-            background: '#667eea',
-            color: 'white',
-            padding: '12px',
-            borderRadius: '8px',
-            border: 'none',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            marginTop: '10px'
-          }}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              background: '#667eea',
+              color: 'white',
+              padding: '12px',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              marginTop: '10px'
+            }}
+          >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <p style={{ marginBottom: '20px' }}>or</p>
 
-        {/* Google Login */}
-        <button onClick={handleGoogleLogin} disabled={loading} style={{
-          width: '100%',
-          background: '#4285f4',
-          color: 'white',
-          padding: '12px',
-          borderRadius: '8px',
-          border: 'none',
-          fontSize: '16px',
-          fontWeight: 'bold'
-        }}>
+        {/* GOOGLE LOGIN */}
+        <button
+          onClick={signInWithGoogle}
+          disabled={loading}
+          style={{
+            width: '100%',
+            background: '#4285f4',
+            color: 'white',
+            padding: '12px',
+            borderRadius: '8px',
+            border: 'none',
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }}
+        >
           {loading ? 'Loading...' : 'Sign in with Google'}
         </button>
 
