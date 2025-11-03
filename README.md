@@ -249,7 +249,7 @@ Search tutorials
 1. **Create Railway Project**
    - Go to https://railway.app
    - Click "New Project" → "Deploy from GitHub repo"
-   - Select this repository and branch `claude/add-deployment-support-011CUURs8wyTNU1VgT5cZn83`
+   - Select this repository and branch `claude/clarify-git-commands-011CUURs8wyTNU1VgT5cZn83`
 
 2. **Add Environment Variables**
    - In Railway dashboard, go to your project → Variables
