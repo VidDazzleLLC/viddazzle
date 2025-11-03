@@ -260,6 +260,58 @@ Search tutorials
    - Run the schema in your production Supabase instance
    - Update environment variables with production URLs
 
+## Testing Your Deployment
+
+### Automated Testing
+
+Use the provided test script to verify all API endpoints:
+
+```bash
+# Test Railway deployment
+./scripts/test-railway-api.sh https://your-app.railway.app
+
+# Test local deployment
+./scripts/test-railway-api.sh http://localhost:3000
+```
+
+### Manual Testing
+
+#### Quick Test with curl
+```bash
+export RAILWAY_URL="https://your-app.railway.app"
+
+# List workflows
+curl -X GET "$RAILWAY_URL/api/workflows"
+
+# Create workflow
+curl -X POST "$RAILWAY_URL/api/workflows" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Test", "steps": [], "status": "draft"}'
+```
+
+#### Using Postman
+1. Import `docs/VidDazzle_API.postman_collection.json`
+2. Set `base_url` variable to your deployment URL
+3. Run the collection
+
+### Testing Documentation
+
+- **[Railway API Testing Guide](docs/RAILWAY_API_TESTING.md)** - Comprehensive testing documentation
+- **[Quick Test Guide](docs/QUICK_TEST_GUIDE.md)** - Fast reference for curl commands
+- **[Railway Testing Checklist](docs/RAILWAY_TESTING_CHECKLIST.md)** - Complete testing checklist
+- **[Postman Collection](docs/VidDazzle_API.postman_collection.json)** - Import into Postman
+
+### Test Coverage
+
+The test suite verifies:
+- ✅ All CRUD operations for workflows
+- ✅ Workflow execution and logging
+- ✅ AI-powered workflow generation
+- ✅ Tutorial storage and semantic search
+- ✅ Error handling and validation
+- ✅ Database persistence
+- ✅ Performance and response times
+
 ## Environment Variables
 
 | Variable | Description | Required |
