@@ -18,9 +18,11 @@ AI-powered workflow automation platform built with Claude Opus 4.1, MCP (Model C
 - **Frontend**: Next.js 14, React, TailwindCSS, Lucide Icons
 - **Backend**: Next.js API Routes (serverless functions)
 - **AI**: Claude Opus 4.1 (Anthropic API)
-- **Database**: Supabase (PostgreSQL + pgvector)
-- **Deployment**: Vercel
+- **Database**: PostgreSQL with pgvector (Supabase or Neon.tech)
+- **Deployment**: Vercel / Neon.tech
 - **Tools**: MCP (Model Context Protocol)
+
+> **Note**: This project is currently deployed on [Neon.tech](https://neon.tech) - a serverless PostgreSQL platform. The codebase also supports Supabase. Both platforms provide PostgreSQL with pgvector extension for embeddings.
 
 ## Quick Start
 
@@ -29,7 +31,7 @@ AI-powered workflow automation platform built with Claude Opus 4.1, MCP (Model C
 - Node.js 18.17.0 or higher
 - npm or yarn
 - Anthropic API key (for Claude)
-- Supabase account (free tier works)
+- PostgreSQL database (Supabase or Neon.tech - free tier works)
 - (Optional) OpenAI API key for embeddings
 
 ### Installation
@@ -65,14 +67,18 @@ AI-powered workflow automation platform built with Claude Opus 4.1, MCP (Model C
    OPENAI_API_KEY=sk-xxxxx
    ```
 
-4. **Set up Supabase database**
+4. **Set up PostgreSQL database**
 
-   Run the SQL schema in your Supabase SQL editor:
-   ```bash
-   cat supabase/schema.sql
-   ```
+   **For Neon.tech:**
+   - Create a project at [Neon.tech](https://neon.tech)
+   - Copy your connection string
+   - Run the schema from `supabase/schema.sql` in the Neon SQL Editor
+   - Update `.env.local` with your Neon connection details
 
-   Copy and paste the contents into Supabase SQL Editor and run it.
+   **For Supabase:**
+   - Create a project at [Supabase](https://supabase.com)
+   - Copy and paste the contents of `supabase/schema.sql` into Supabase SQL Editor and run it
+   - Update `.env.local` with your Supabase URL and keys
 
 5. **Run development server**
    ```bash
