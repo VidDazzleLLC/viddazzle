@@ -240,7 +240,31 @@ Search tutorials
 - `matchCount`: Number of results (default: 5)
 - `matchThreshold`: Similarity threshold (default: 0.7)
 
-## Deployment to Vercel
+## Deployment
+
+### Railway (Recommended)
+
+**One-click deploy ready to go:**
+
+1. **Create Railway Project**
+   - Go to https://railway.app
+   - Click "New Project" → "Deploy from GitHub repo"
+   - Select this repository and branch `claude/add-deployment-support-011CUURs8wyTNU1VgT5cZn83`
+
+2. **Add Environment Variables**
+   - In Railway dashboard, go to your project → Variables
+   - Copy ALL variables from `.env.railway` file
+   - Update `NEXT_PUBLIC_APP_URL` to your Railway URL (shown in deployment)
+   - Add your actual `ANTHROPIC_API_KEY`
+
+3. **Deploy**
+   - Railway auto-deploys on push
+   - View deployment logs in Railway dashboard
+   - Access your app at the generated Railway URL
+
+**Database**: Supabase is already configured and schema is ready. No additional database setup needed.
+
+### Vercel
 
 1. **Install Vercel CLI**
    ```bash
