@@ -69,16 +69,13 @@ AI-powered workflow automation platform built with Claude Opus 4.1, MCP (Model C
 
 4. **Set up PostgreSQL database**
 
-   **For Neon.tech:**
-   - Create a project at [Neon.tech](https://neon.tech)
-   - Copy your connection string
-   - Run the schema from `supabase/schema.sql` in the Neon SQL Editor
-   - Update `.env.local` with your Neon connection details
+   See [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md) for detailed instructions.
 
-   **For Supabase:**
+   **Quick start:**
    - Create a project at [Supabase](https://supabase.com)
-   - Copy and paste the contents of `supabase/schema.sql` into Supabase SQL Editor and run it
-   - Update `.env.local` with your Supabase URL and keys
+   - Copy and paste the contents of `schema/supabase-schema.sql` into Supabase SQL Editor and run it
+   - Update `.env` with your Supabase URL and keys
+   - Verify setup: `npm run test:db` (optional, may fail in restricted environments)
 
 5. **Run development server**
    ```bash
@@ -287,7 +284,7 @@ The app uses PostgreSQL with pgvector for embeddings:
 - **mcp_tool_usage**: Log tool usage for analytics
 - **connectors**: Store connector configurations
 
-See `supabase/schema.sql` for complete schema.
+See [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md) for detailed schema documentation.
 
 ## Development
 
