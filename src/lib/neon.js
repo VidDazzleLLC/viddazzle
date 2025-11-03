@@ -180,12 +180,12 @@ export async function updateExecution(id, updates) {
 
   values.push(id);
 
-  const result = await query(
+  const queryResult = await query(
     `UPDATE workflow_executions SET ${fields.join(', ')} WHERE id = $${paramCount} RETURNING *`,
     values
   );
 
-  return result.rows[0];
+  return queryResult.rows[0];
 }
 
 /**
