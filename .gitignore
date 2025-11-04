@@ -40,3 +40,8 @@ next-env.d.ts
 .idea
 *.swp
 *.swo
+
+# Automation temporary files
+.railway-token.tmp
+.github-secrets.env
+.github-secrets-reference.txt
