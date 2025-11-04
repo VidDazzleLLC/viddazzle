@@ -1,0 +1,427 @@
+{
+  "info": {
+    "name": "VidDazzle Workflow Autopilot API",
+    "description": "Complete API collection for testing VidDazzle Workflow Autopilot endpoints on Railway",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "viddazzle-workflow-api",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://your-app.railway.app",
+      "type": "string",
+      "description": "Your Railway deployment URL"
+    },
+    {
+      "key": "workflow_id",
+      "value": "",
+      "type": "string",
+      "description": "ID of created workflow (auto-populated)"
+    },
+    {
+      "key": "execution_id",
+      "value": "",
+      "type": "string",
+      "description": "ID of workflow execution (auto-populated)"
+    }
+  ],
+  "item": [
+    {
+      "name": "Workflows",
+      "description": "CRUD operations for workflows",
+      "item": [
+        {
+          "name": "List All Workflows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workflows",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workflows"]
+            },
+            "description": "Retrieve all workflows from the database"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Workflow by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workflows?id={{workflow_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workflows"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "{{workflow_id}}"
+                }
+              ]
+            },
+            "description": "Retrieve a specific workflow by its ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Workflow",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-populate workflow_id variable",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.workflow && response.workflow.id) {",
+                  "        pm.collectionVariables.set('workflow_id', response.workflow.id);",
+                  "        console.log('Workflow ID set to:', response.workflow.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sample Workflow\",\n  \"description\": \"A test workflow for API testing\",\n  \"steps\": [\n    {\n      \"id\": \"step1\",\n      \"name\": \"Fetch Data\",\n      \"tool\": \"http_request\",\n      \"input\": {\n        \"url\": \"https://api.github.com/zen\",\n        \"method\": \"GET\"\n      },\n      \"on_error\": \"stop\",\n      \"timeout\": 5000\n    }\n  ],\n  \"status\": \"draft\",\n  \"metadata\": {\n    \"created_via\": \"postman\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workflows",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workflows"]
+            },
+            "description": "Create a new workflow"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Workflow",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{workflow_id}}\",\n  \"status\": \"active\",\n  \"description\": \"Updated workflow description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/workflows",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workflows"]
+            },
+            "description": "Update an existing workflow"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Workflow",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workflows?id={{workflow_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "workflows"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "{{workflow_id}}"
+                }
+              ]
+            },
+            "description": "Delete a workflow by ID"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Workflow Execution",
+      "description": "Execute and monitor workflows",
+      "item": [
+        {
+          "name": "Execute Workflow",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-populate execution_id variable",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.executionId) {",
+                  "        pm.collectionVariables.set('execution_id', response.executionId);",
+                  "        console.log('Execution ID set to:', response.executionId);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workflowId\": \"{{workflow_id}}\",\n  \"input\": {}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/execute-workflow",
+              "host": ["{{base_url}}"],
+              "path": ["api", "execute-workflow"]
+            },
+            "description": "Execute a workflow by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Execute Inline Workflow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workflow\": {\n    \"name\": \"Inline Test Workflow\",\n    \"description\": \"Testing inline workflow execution\",\n    \"steps\": [\n      {\n        \"id\": \"step1\",\n        \"name\": \"HTTP Request\",\n        \"tool\": \"http_request\",\n        \"input\": {\n          \"url\": \"https://api.github.com/users/github\",\n          \"method\": \"GET\"\n        }\n      }\n    ],\n    \"variables\": {}\n  },\n  \"input\": {}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/execute-workflow",
+              "host": ["{{base_url}}"],
+              "path": ["api", "execute-workflow"]
+            },
+            "description": "Execute a workflow without saving it first"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Generation",
+      "description": "AI-powered workflow generation",
+      "item": [
+        {
+          "name": "Generate Workflow",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Auto-populate workflow_id from generated workflow",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.saved && response.saved.id) {",
+                  "        pm.collectionVariables.set('workflow_id', response.saved.id);",
+                  "        console.log('Generated Workflow ID set to:', response.saved.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Create a workflow that fetches data from a REST API, transforms the JSON response, and saves selected fields to the database\",\n  \"save\": true,\n  \"context\": {\n    \"api_url\": \"https://api.example.com/data\",\n    \"table_name\": \"api_data\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/generate-workflow",
+              "host": ["{{base_url}}"],
+              "path": ["api", "generate-workflow"]
+            },
+            "description": "Generate a workflow using AI from natural language prompt. Requires ANTHROPIC_API_KEY."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Without Saving",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Create a simple workflow that sends an email notification\",\n  \"save\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/generate-workflow",
+              "host": ["{{base_url}}"],
+              "path": ["api", "generate-workflow"]
+            },
+            "description": "Generate a workflow preview without saving to database"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Learning System",
+      "description": "Tutorial storage and semantic search",
+      "item": [
+        {
+          "name": "Store Tutorial",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"How to create effective workflows: 1. Define clear objectives, 2. Break down into logical steps, 3. Choose appropriate tools, 4. Add error handling, 5. Test thoroughly before deployment.\",\n  \"metadata\": {\n    \"title\": \"Workflow Best Practices\",\n    \"difficulty\": \"intermediate\",\n    \"author\": \"VidDazzle Team\"\n  },\n  \"category\": \"best-practices\",\n  \"tags\": [\"workflow\", \"automation\", \"best-practices\", \"tutorial\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/learn-tutorial",
+              "host": ["{{base_url}}"],
+              "path": ["api", "learn-tutorial"]
+            },
+            "description": "Store a new tutorial with vector embeddings. Uses OpenAI embeddings or fallback."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Tutorials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/learn-tutorial?query=workflow automation&matchCount=5&matchThreshold=0.7",
+              "host": ["{{base_url}}"],
+              "path": ["api", "learn-tutorial"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "workflow automation",
+                  "description": "Search query text"
+                },
+                {
+                  "key": "matchCount",
+                  "value": "5",
+                  "description": "Number of results to return"
+                },
+                {
+                  "key": "matchThreshold",
+                  "value": "0.7",
+                  "description": "Similarity threshold (0-1)"
+                }
+              ]
+            },
+            "description": "Search for relevant tutorials using semantic search"
+          },
+          "response": []
+        },
+        {
+          "name": "Search - Error Handling",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/learn-tutorial?query=error handling strategies&matchCount=3",
+              "host": ["{{base_url}}"],
+              "path": ["api", "learn-tutorial"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "error handling strategies"
+                },
+                {
+                  "key": "matchCount",
+                  "value": "3"
+                }
+              ]
+            },
+            "description": "Search for tutorials about error handling"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "description": "Basic deployment verification",
+      "item": [
+        {
+          "name": "Homepage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Check if the application is running"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "noauth"
+  }
+}

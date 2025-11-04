@@ -1,4 +1,4 @@
-import { getWorkflow, createExecution, updateExecution, updateWorkflow, logToolUsage, getConnectors } from '@/lib/supabase';
+import { getWorkflow, createExecution, updateExecution, updateWorkflow, logToolUsage, getConnectors } from '@/lib/db';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';

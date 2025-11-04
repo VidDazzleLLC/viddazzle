@@ -6,8 +6,26 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "build:deploy": "node scripts/deploy-migrate.js && next build",
+    "start": "npm run migrate:deploy && next start",
+    "lint": "next lint",
+    "test:db": "tsx scripts/test-db-connection.ts",
+    "test:railway": "node test-railway-db.js",
+    "test:deployment": "bash scripts/test-deployment.sh",
+    "migrate": "tsx scripts/run-migrations.ts",
+    "migrate:deploy": "node scripts/deploy-migrate.js",
+    "verify:config": "node scripts/verify-deployment-config.js",
+    "verify:railway": "node scripts/verify-railway-setup.js",
+    "deploy": "railway up",
+    "deploy:staging": "railway up --environment staging",
+    "railway:link": "railway link",
+    "railway:status": "railway status",
+    "railway:logs": "railway logs",
+    "setup:railway": "bash scripts/setup-railway-automated.sh",
+    "setup:railway:env": "bash scripts/auto-configure-railway.sh",
+    "setup:github": "bash scripts/auto-configure-github-secrets.sh",
+    "setup:all": "bash scripts/one-click-deploy.sh",
+    "postinstall": "echo '✨ Dependencies installed successfully'"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
@@ -16,6 +34,7 @@
     "clsx": "^2.1.0",
     "lucide-react": "^0.321.0",
     "next": "^14.1.0",
+    "pg": "^8.16.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^9.0.1",
@@ -29,7 +48,8 @@
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
     "postcss": "^8.4.33",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.7.0"
   },
   "engines": {
     "node": ">=18.17.0"

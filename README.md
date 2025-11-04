@@ -69,18 +69,24 @@ AI-powered workflow automation platform built with Claude Opus 4.1, MCP (Model C
 
 4. **Set up PostgreSQL database**
 
-   **For Neon.tech:**
-   - Create a project at [Neon.tech](https://neon.tech)
-   - Copy your connection string
-   - Run the schema from `supabase/schema.sql` in the Neon SQL Editor
-   - Update `.env.local` with your Neon connection details
+   See [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md) for detailed instructions.
 
-   **For Supabase:**
-   - Create a project at [Supabase](https://supabase.com)
-   - Copy and paste the contents of `supabase/schema.sql` into Supabase SQL Editor and run it
-   - Update `.env.local` with your Supabase URL and keys
+   **Quick start:**
+   - Create a project at [Supabase](https://supabase.com) or [Neon.tech](https://neon.tech)
+   - Copy and paste the contents of `schema/supabase-schema.sql` into Supabase SQL Editor and run it
+   - Update `.env` with your database URL and keys
+   - Verify setup: `npm run test:db` (optional, may fail in restricted environments)
 
-5. **Run development server**
+5. **Run database migrations**
+
+   Apply database schema changes for new features:
+   ```bash
+   npm run migrate
+   ```
+
+   This will create tables for social media listening and other features. See [migrations/README.md](migrations/README.md) for details.
+
+6. **Run development server**
    ```bash
    npm run dev
    ```
@@ -243,7 +249,31 @@ Search tutorials
 - `matchCount`: Number of results (default: 5)
 - `matchThreshold`: Similarity threshold (default: 0.7)
 
-## Deployment to Vercel
+## Deployment
+
+### Railway (Recommended)
+
+**One-click deploy ready to go:**
+
+1. **Create Railway Project**
+   - Go to https://railway.app
+   - Click "New Project" → "Deploy from GitHub repo"
+   - Select this repository and branch `claude/clarify-git-commands-011CUURs8wyTNU1VgT5cZn83`
+
+2. **Add Environment Variables**
+   - In Railway dashboard, go to your project → Variables
+   - Copy ALL variables from `.env.railway` file
+   - Update `NEXT_PUBLIC_APP_URL` to your Railway URL (shown in deployment)
+   - Add your actual `ANTHROPIC_API_KEY`
+
+3. **Deploy**
+   - Railway auto-deploys on push
+   - View deployment logs in Railway dashboard
+   - Access your app at the generated Railway URL
+
+**Database**: Supabase is already configured and schema is ready. No additional database setup needed.
+
+### Vercel
 
 1. **Install Vercel CLI**
    ```bash
@@ -262,6 +292,58 @@ Search tutorials
 4. **Configure Supabase**
    - Run the schema in your production Supabase instance
    - Update environment variables with production URLs
+
+## Testing Your Deployment
+
+### Automated Testing
+
+Use the provided test script to verify all API endpoints:
+
+```bash
+# Test Railway deployment
+./scripts/test-railway-api.sh https://your-app.railway.app
+
+# Test local deployment
+./scripts/test-railway-api.sh http://localhost:3000
+```
+
+### Manual Testing
+
+#### Quick Test with curl
+```bash
+export RAILWAY_URL="https://your-app.railway.app"
+
+# List workflows
+curl -X GET "$RAILWAY_URL/api/workflows"
+
+# Create workflow
+curl -X POST "$RAILWAY_URL/api/workflows" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Test", "steps": [], "status": "draft"}'
+```
+
+#### Using Postman
+1. Import `docs/VidDazzle_API.postman_collection.json`
+2. Set `base_url` variable to your deployment URL
+3. Run the collection
+
+### Testing Documentation
+
+- **[Railway API Testing Guide](docs/RAILWAY_API_TESTING.md)** - Comprehensive testing documentation
+- **[Quick Test Guide](docs/QUICK_TEST_GUIDE.md)** - Fast reference for curl commands
+- **[Railway Testing Checklist](docs/RAILWAY_TESTING_CHECKLIST.md)** - Complete testing checklist
+- **[Postman Collection](docs/VidDazzle_API.postman_collection.json)** - Import into Postman
+
+### Test Coverage
+
+The test suite verifies:
+- ✅ All CRUD operations for workflows
+- ✅ Workflow execution and logging
+- ✅ AI-powered workflow generation
+- ✅ Tutorial storage and semantic search
+- ✅ Error handling and validation
+- ✅ Database persistence
+- ✅ Performance and response times
 
 ## Environment Variables
 
@@ -287,7 +369,7 @@ The app uses PostgreSQL with pgvector for embeddings:
 - **mcp_tool_usage**: Log tool usage for analytics
 - **connectors**: Store connector configurations
 
-See `supabase/schema.sql` for complete schema.
+See [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md) for detailed schema documentation.
 
 ## Development
 
@@ -331,6 +413,14 @@ Workflows support custom steps with these features:
 
 ## Troubleshooting
 
+### "Could not find the table 'public.platform_credentials'" error
+This means database migrations haven't been run yet. Fix it by running:
+```bash
+npm run migrate
+```
+
+See [migrations/README.md](migrations/README.md) for more information.
+
 ### Claude API errors
 - Verify `ANTHROPIC_API_KEY` is correct
 - Check API rate limits
@@ -340,6 +430,7 @@ Workflows support custom steps with these features:
 - Verify Supabase URL and keys
 - Check database schema is applied
 - Ensure pgvector extension is enabled
+- Run `npm run migrate` to apply schema changes
 
 ### Execution timeouts
 - Increase `WORKFLOW_TIMEOUT` in environment
