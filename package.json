@@ -6,10 +6,16 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:deploy": "node scripts/deploy-migrate.js && next build",
     "start": "next start",
     "lint": "next lint",
     "test:db": "tsx scripts/test-db-connection.ts",
-    "migrate": "tsx scripts/run-migrations.ts"
+    "migrate": "tsx scripts/run-migrations.ts",
+    "migrate:deploy": "node scripts/deploy-migrate.js",
+    "verify:config": "node scripts/verify-deployment-config.js",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel",
+    "postinstall": "echo '✨ Dependencies installed successfully'"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",

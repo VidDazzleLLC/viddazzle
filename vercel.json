@@ -6,8 +6,9 @@
       "use": "@vercel/next"
     }
   ],
+  "buildCommand": "npm run build:deploy",
   "env": {
-    "NEXT_PUBLIC_APP_NAME": "Workflow Autopilot",
+    "NEXT_PUBLIC_APP_NAME": "VidDazzle",
     "NEXT_PUBLIC_APP_VERSION": "1.0.0"
   },
   "regions": ["iad1"],
@@ -21,6 +22,25 @@
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Authorization"
+        }
+      ]
     }
   ]
 }
