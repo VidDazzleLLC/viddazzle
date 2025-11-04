@@ -2,6 +2,29 @@
 
 Complete guide for setting up fully automated CI/CD deployment on Railway with zero manual intervention.
 
+---
+
+## 🚨 CRITICAL SETUP ISSUES - READ FIRST!
+
+**⚠️ If your deployment is failing, you likely have missing configuration:**
+
+### Quick Check:
+```bash
+npm run verify:railway
+```
+
+### Critical Issues Found:
+1. **DATABASE_URL is NOT set in Railway** - This causes health check failures
+2. **GitHub Secrets are NOT configured** - This prevents auto-deployment
+3. **CI/CD pipeline has never run successfully**
+
+### Immediate Fix:
+👉 **Read [`RAILWAY_SETUP_FIX.md`](./RAILWAY_SETUP_FIX.md) for step-by-step instructions to fix these issues NOW.**
+
+**This guide assumes you have already completed the critical setup steps in `RAILWAY_SETUP_FIX.md`.**
+
+---
+
 ## 🚂 Why Railway?
 
 Railway is perfect for VidDazzle because:

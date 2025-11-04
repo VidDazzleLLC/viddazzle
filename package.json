@@ -14,6 +14,7 @@
     "migrate": "tsx scripts/run-migrations.ts",
     "migrate:deploy": "node scripts/deploy-migrate.js",
     "verify:config": "node scripts/verify-deployment-config.js",
+    "verify:railway": "node scripts/verify-railway-setup.js",
     "deploy": "railway up",
     "deploy:staging": "railway up --environment staging",
     "railway:link": "railway link",
