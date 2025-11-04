@@ -72,12 +72,21 @@ AI-powered workflow automation platform built with Claude Opus 4.1, MCP (Model C
    See [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md) for detailed instructions.
 
    **Quick start:**
-   - Create a project at [Supabase](https://supabase.com)
+   - Create a project at [Supabase](https://supabase.com) or [Neon.tech](https://neon.tech)
    - Copy and paste the contents of `schema/supabase-schema.sql` into Supabase SQL Editor and run it
-   - Update `.env` with your Supabase URL and keys
+   - Update `.env` with your database URL and keys
    - Verify setup: `npm run test:db` (optional, may fail in restricted environments)
 
-5. **Run development server**
+5. **Run database migrations**
+
+   Apply database schema changes for new features:
+   ```bash
+   npm run migrate
+   ```
+
+   This will create tables for social media listening and other features. See [migrations/README.md](migrations/README.md) for details.
+
+6. **Run development server**
    ```bash
    npm run dev
    ```
@@ -404,6 +413,14 @@ Workflows support custom steps with these features:
 
 ## Troubleshooting
 
+### "Could not find the table 'public.platform_credentials'" error
+This means database migrations haven't been run yet. Fix it by running:
+```bash
+npm run migrate
+```
+
+See [migrations/README.md](migrations/README.md) for more information.
+
 ### Claude API errors
 - Verify `ANTHROPIC_API_KEY` is correct
 - Check API rate limits
@@ -413,6 +430,7 @@ Workflows support custom steps with these features:
 - Verify Supabase URL and keys
 - Check database schema is applied
 - Ensure pgvector extension is enabled
+- Run `npm run migrate` to apply schema changes
 
 ### Execution timeouts
 - Increase `WORKFLOW_TIMEOUT` in environment
