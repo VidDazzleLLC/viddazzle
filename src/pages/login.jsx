@@ -65,12 +65,36 @@ export default function Login() {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/app`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Google OAuth error:', error);
+        throw error;
+      }
+
+      // OAuth redirect happens automatically, no need to handle success here
     } catch (err) {
-      setError(err.message || 'Google sign-in failed');
+      console.error('Google sign-in error details:', err);
+
+      // Provide more helpful error messages
+      let errorMessage = 'Google sign-in failed. ';
+
+      if (err.message?.includes('Invalid provider')) {
+        errorMessage += 'Google OAuth is not enabled in Supabase. Please enable it in Authentication > Providers.';
+      } else if (err.message?.includes('redirect')) {
+        errorMessage += 'Redirect URL configuration issue. Check Supabase URL Configuration settings.';
+      } else if (err.message?.includes('client_id') || err.message?.includes('credentials')) {
+        errorMessage += 'Google OAuth credentials are not configured. Please set up OAuth in Supabase.';
+      } else {
+        errorMessage += err.message || 'Unknown error occurred.';
+      }
+
+      setError(errorMessage);
       setLoading(false);
     }
   };

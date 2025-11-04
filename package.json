@@ -12,6 +12,7 @@
     "test:db": "tsx scripts/test-db-connection.ts",
     "test:railway": "node test-railway-db.js",
     "test:deployment": "bash scripts/test-deployment.sh",
+    "test:google-auth": "node scripts/test-google-auth.js",
     "migrate": "tsx scripts/run-migrations.ts",
     "migrate:deploy": "node scripts/deploy-migrate.js",
     "verify:config": "node scripts/verify-deployment-config.js",
