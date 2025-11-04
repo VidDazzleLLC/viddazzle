@@ -1,5 +1,5 @@
 // Social Media Listening Dashboard
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 export default function SocialListeningDashboard() {
@@ -13,18 +13,7 @@ export default function SocialListeningDashboard() {
   // Mock user ID - in production, get from auth
   const userId = 'user-123';
 
-  useEffect(() => {
-    loadCampaigns();
-  }, []);
-
-  useEffect(() => {
-    if (selectedCampaign) {
-      loadMentions(selectedCampaign.id);
-      loadAnalytics(selectedCampaign.id);
-    }
-  }, [selectedCampaign]);
-
-  const loadCampaigns = async () => {
+  const loadCampaigns = useCallback(async () => {
     try {
       const response = await axios.get(`/api/social-listening/campaigns?userId=${userId}`);
       setCampaigns(response.data);
@@ -36,7 +25,18 @@ export default function SocialListeningDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, selectedCampaign]);
+
+  useEffect(() => {
+    loadCampaigns();
+  }, [loadCampaigns]);
+
+  useEffect(() => {
+    if (selectedCampaign) {
+      loadMentions(selectedCampaign.id);
+      loadAnalytics(selectedCampaign.id);
+    }
+  }, [selectedCampaign]);
 
   const loadMentions = async (campaignId) => {
     try {
@@ -428,18 +428,18 @@ function OutreachTab({ campaignId, userId }) {
   const [pendingMessages, setPendingMessages] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    loadPendingMessages();
-  }, [userId]);
-
-  const loadPendingMessages = async () => {
+  const loadPendingMessages = useCallback(async () => {
     try {
       const response = await axios.get(`/api/social-outreach/queue?userId=${userId}`);
       setPendingMessages(response.data);
     } catch (error) {
       console.error('Error loading pending messages:', error);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    loadPendingMessages();
+  }, [loadPendingMessages]);
 
   const handleApprove = async (messageId) => {
     try {

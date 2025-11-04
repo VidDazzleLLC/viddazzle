@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { supabase } from '@/lib/supabase';
@@ -8,6 +8,25 @@ export default function App() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const checkUser = useCallback(async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error) throw error;
+
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        router.push('/login');
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      router.push('/login');
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
 
   useEffect(() => {
     // Check initial session
@@ -27,26 +46,7 @@ export default function App() {
     return () => {
       authListener?.subscription?.unsubscribe();
     };
-  }, [router]);
-
-  const checkUser = async () => {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-
-      if (error) throw error;
-
-      if (session?.user) {
-        setUser(session.user);
-      } else {
-        router.push('/login');
-      }
-    } catch (error) {
-      console.error('Error checking auth:', error);
-      router.push('/login');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [router, checkUser]);
 
   const handleSignOut = async () => {
     try {
