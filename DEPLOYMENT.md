@@ -1,5 +1,9 @@
 # VidDazzle - Automated Deployment Guide
 
+> **🚂 Using Railway?** See [RAILWAY_DEPLOYMENT.md](./RAILWAY_DEPLOYMENT.md) for Railway-specific instructions (recommended for Railway Pro users!)
+
+> **⚠️ Note:** This guide covers Vercel deployment. If you're using Railway Pro, please use the Railway-specific guide above for optimized configuration.
+
 This guide will help you set up fully automated deployments for VidDazzle with zero manual intervention required.
 
 ## 🚀 Overview

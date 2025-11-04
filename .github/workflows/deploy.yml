@@ -1,4 +1,4 @@
-name: Deploy to Vercel
+name: Deploy to Railway
 
 on:
   push:
@@ -10,8 +10,7 @@ on:
       - main
 
 env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
 jobs:
   # Lint and Test Job
@@ -71,58 +70,57 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         continue-on-error: true
 
-  # Deploy to Vercel
+  # Deploy to Railway
   deploy:
-    name: Deploy to Vercel
+    name: Deploy to Railway
     runs-on: ubuntu-latest
     needs: quality-check
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.17.0'
-          cache: 'npm'
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build Project Artifacts
-        run: vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy to Vercel
+      - name: Deploy to Railway
         id: deploy
         run: |
+          railway link ${{ secrets.RAILWAY_PROJECT_ID }}
+
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} > deployment-url.txt
+            echo "🚀 Deploying to production..."
+            railway up --service=${{ secrets.RAILWAY_SERVICE_NAME || 'web' }}
+            DEPLOYMENT_URL=$(railway domain)
           else
-            vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} > deployment-url.txt
+            echo "🔍 Deploying preview..."
+            railway up --service=${{ secrets.RAILWAY_SERVICE_NAME || 'web' }}
+            DEPLOYMENT_URL=$(railway domain)
           fi
-          echo "url=$(cat deployment-url.txt)" >> $GITHUB_OUTPUT
+
+          echo "url=${DEPLOYMENT_URL}" >> $GITHUB_OUTPUT
+          echo "Deployment URL: ${DEPLOYMENT_URL}"
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
       - name: Comment PR with deployment URL
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
-            const deploymentUrl = '${{ steps.deploy.outputs.url }}';
+            const deploymentUrl = '${{ steps.deploy.outputs.url }}' || 'Check Railway dashboard for URL';
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🚀 Deployment successful!\n\n**Preview URL:** ${deploymentUrl}\n\n✨ Your changes are live and ready for review.`
+              body: `🚂 Railway Deployment successful!\n\n**Preview URL:** ${deploymentUrl}\n\n✨ Your changes are live and ready for review.\n\n*Database migrations run automatically during deployment.*`
             });
 
       - name: Deployment Summary
         run: |
-          echo "### 🚀 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚂 Railway Deployment Successful!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** ${{ github.ref == 'refs/heads/main' && 'Production' || 'Preview' }}" >> $GITHUB_STEP_SUMMARY
           echo "**URL:** ${{ steps.deploy.outputs.url }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Migrations:** Automatic (runs during build)" >> $GITHUB_STEP_SUMMARY
