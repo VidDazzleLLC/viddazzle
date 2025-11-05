@@ -71,6 +71,22 @@ export default async function handler(req, res) {
       });
     }
 
+    // Log usage asynchronously (don't wait for it)
+    const totalTokens = response.usage.input_tokens + response.usage.output_tokens;
+    const estimatedCost = totalTokens * 0.000015; // $15 per 1M tokens
+
+    fetch(`${req.headers.origin || 'http://localhost:3000'}/api/usage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endpoint: '/api/generate-workflow',
+        tokens_used: totalTokens,
+        model: process.env.CLAUDE_MODEL || 'claude-opus-4-20250514',
+        cost: estimatedCost,
+        metadata: { workflow_name: workflowData.name }
+      })
+    }).catch(err => console.error('Failed to log usage:', err));
+
     return res.status(200).json({
       success: true,
       workflow: workflowData,
@@ -78,6 +94,8 @@ export default async function handler(req, res) {
       usage: {
         input_tokens: response.usage.input_tokens,
         output_tokens: response.usage.output_tokens,
+        total_tokens: totalTokens,
+        estimated_cost: estimatedCost,
       },
     });
   } catch (error) {

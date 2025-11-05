@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import WorkflowAutopilot from '@/components/WorkflowAutopilot';
 
@@ -102,6 +103,23 @@ export default function App() {
           <span style={{ fontSize: '14px', color: '#666' }}>
             {user.email}
           </span>
+          <Link
+            href="/usage"
+            style={{
+              background: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              fontWeight: '500',
+              textDecoration: 'none',
+              display: 'inline-block'
+            }}
+          >
+            Usage
+          </Link>
           <button
             onClick={handleSignOut}
             style={{
