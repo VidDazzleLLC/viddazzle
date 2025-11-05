@@ -5,6 +5,10 @@
  * - Supabase (via NEXT_PUBLIC_SUPABASE_URL)
  */
 
+// Import both clients
+import * as neonClient from './neon.js';
+import * as supabaseClient from './supabase.js';
+
 // Detect which database client to use
 const hasPostgresUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 const hasSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -13,10 +17,10 @@ let dbClient;
 
 if (hasPostgresUrl) {
   console.log('🔌 Using Neon/PostgreSQL client');
-  dbClient = require('./neon');
+  dbClient = neonClient;
 } else if (hasSupabaseUrl) {
   console.log('🔌 Using Supabase client');
-  dbClient = require('./supabase');
+  dbClient = supabaseClient;
 } else {
   console.warn('⚠️  No database configuration found!');
   // Provide mock functions for development
@@ -34,27 +38,26 @@ if (hasPostgresUrl) {
     logToolUsage: async (data) => ({ id: 'mock-log', ...data }),
     getConnectors: async () => [],
     upsertConnector: async (data) => ({ id: 'mock-connector', ...data }),
+    query: async () => ({ rows: [] }),
   };
 }
 
 // Export all database functions
-export const {
-  createWorkflow,
-  getWorkflows,
-  getWorkflow,
-  updateWorkflow,
-  deleteWorkflow,
-  createExecution,
-  updateExecution,
-  getExecutions,
-  searchTutorials,
-  insertTutorialEmbedding,
-  logToolUsage,
-  getConnectors,
-  upsertConnector,
-  supabase,
-  supabaseAdmin,
-  query,
-} = dbClient;
+export const createWorkflow = dbClient.createWorkflow;
+export const getWorkflows = dbClient.getWorkflows;
+export const getWorkflow = dbClient.getWorkflow;
+export const updateWorkflow = dbClient.updateWorkflow;
+export const deleteWorkflow = dbClient.deleteWorkflow;
+export const createExecution = dbClient.createExecution;
+export const updateExecution = dbClient.updateExecution;
+export const getExecutions = dbClient.getExecutions;
+export const searchTutorials = dbClient.searchTutorials;
+export const insertTutorialEmbedding = dbClient.insertTutorialEmbedding;
+export const logToolUsage = dbClient.logToolUsage;
+export const getConnectors = dbClient.getConnectors;
+export const upsertConnector = dbClient.upsertConnector;
+export const supabase = dbClient.supabase || dbClient.default;
+export const supabaseAdmin = dbClient.supabaseAdmin;
+export const query = dbClient.query;
 
 export default dbClient;

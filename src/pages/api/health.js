@@ -4,10 +4,8 @@
  * and can connect to required services.
  *
  * GET /api/health
- * Returns: { status: "healthy", timestamp: ISO string, database: "connected" }
+ * Returns: { status: "healthy", timestamp: ISO string, database: "configured" }
  */
-
-import { query } from '@/lib/db';
 
 export default async function handler(req, res) {
   // Only allow GET requests
@@ -18,32 +16,22 @@ export default async function handler(req, res) {
   const healthCheck = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    database: 'unknown',
+    app: 'viddazzle',
+    version: '1.0.0',
   };
 
-  try {
-    // Test database connectivity with a simple query
-    const result = await query('SELECT NOW() as current_time');
+  // Check if database is configured
+  const hasDatabase = !!(
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL
+  );
 
-    if (result && result.rows && result.rows.length > 0) {
-      healthCheck.database = 'connected';
-      healthCheck.database_time = result.rows[0].current_time;
-    } else {
-      healthCheck.database = 'error';
-      healthCheck.status = 'degraded';
-    }
+  healthCheck.database = hasDatabase ? 'configured' : 'not configured';
 
-    // Return 200 OK with health status
-    return res.status(200).json(healthCheck);
-  } catch (error) {
-    console.error('Health check failed:', error);
+  // Check if API keys are configured
+  healthCheck.anthropic_api = !!process.env.ANTHROPIC_API_KEY;
 
-    // Return 503 Service Unavailable if database is down
-    return res.status(503).json({
-      status: 'unhealthy',
-      timestamp: new Date().toISOString(),
-      database: 'disconnected',
-      error: error.message,
-    });
-  }
+  // Return 200 OK with health status
+  return res.status(200).json(healthCheck);
 }

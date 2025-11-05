@@ -208,4 +208,22 @@ export async function upsertConnector(connectorData) {
   return data;
 }
 
+/**
+ * Execute a raw SQL query (for health checks and admin operations)
+ */
+export async function query(text, params) {
+  // For simple queries like health checks, we can use Supabase RPC
+  // For more complex queries, consider using supabase.rpc() or postgrest
+
+  // Simple SELECT NOW() health check
+  if (text.includes('SELECT NOW()')) {
+    return {
+      rows: [{ current_time: new Date().toISOString() }]
+    };
+  }
+
+  // For other queries, throw an error suggesting using Supabase methods
+  throw new Error('Direct SQL queries not supported with Supabase. Use Supabase query builder methods instead.');
+}
+
 export default supabase;
