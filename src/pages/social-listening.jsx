@@ -166,6 +166,8 @@ function CampaignsTab({ campaigns, onRefresh, userId }) {
     hashtags: '',
     interval_minutes: 15,
   });
+    const [optimizeUrl, setOptimizeUrl] = useState('');
+    const [optimizing, setOptimizing] = useState(false);
 
   const createCampaign = async (e) => {
     e.preventDefault();
@@ -194,6 +196,35 @@ function CampaignsTab({ campaigns, onRefresh, userId }) {
     }
   };
 
+    const handleOptimizeUrl = async () => {
+          if (!optimizeUrl.trim()) {
+                  alert('Please enter a URL');
+                  return;
+                }
+
+          try {
+                  setOptimizing(true);
+                  const response = await axios.post('/api/social-listening/optimize-url', {
+                            url: optimizeUrl
+                                    });
+
+                  // Auto-fill form with AI-extracted data
+                  const { keywords, hashtags, description, platforms } = response.data;
+                  setFormData(prev => ({
+                            ...prev,
+                            description: description || prev.description,
+                            keywords: keywords.join(', '),
+                            hashtags: hashtags.join(', '),
+                            platforms: platforms || prev.platforms
+                                    }));
+                  alert('Campaign optimized with AI! Review and adjust as needed.');
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                } finally {
+                  setOptimizing(false);
+                }
+        };
+
   const togglePlatform = (platform) => {
     setFormData(prev => ({
       ...prev,
@@ -219,6 +250,28 @@ function CampaignsTab({ campaigns, onRefresh, userId }) {
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium mb-4">Create Campaign</h3>
           <form onSubmit={createCampaign} className="space-y-4">
+                            {/* URL Optimization Section */}
+                            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border-2 border-blue-200 mb-6">
+                                                <h4 className="text-md font-semibold text-blue-900 mb-2">🚀 AI-Powered Campaign Optimizer</h4>
+                                                <p className="text-sm text-gray-700 mb-3">Paste your website or affiliate link and let AI extract keywords, generate hashtags, and optimize your campaign</p>
+                                                <div className="flex gap-2">
+                                                                      <input
+                                                                                              type="url"
+                                                                                              value={optimizeUrl}
+                                                                                              onChange={(e) => setOptimizeUrl(e.target.value)}
+                                                                                              placeholder="https://example.com/your-product"
+                                                                                              className="flex-1 px-3 py-2 border rounded-lg"
+                                                                                            />
+                                                                      <button
+                                                                                              type="button"
+                                                                                              onClick={handleOptimizeUrl}
+                                                                                              disabled={optimizing || !optimizeUrl.trim()}
+                                                                                              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 font-medium"
+                                                                                            >
+                                                                                              {optimizing ? '⚙️ Analyzing...' : '✨ Optimize with AI'}
+                                                                                            </button>
+                                                                    </div>
+                                              </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Name</label>
               <input
