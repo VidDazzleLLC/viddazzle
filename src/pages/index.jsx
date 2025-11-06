@@ -71,6 +71,56 @@ export default function Landing() {
         </p>
       </div>
 
+            {/* NEW PREMIUM FEATURES */}
+      <div style={{
+        background: 'rgba(99,102,241,0.1)',
+        border: '2px solid rgba(99,102,241,0.3)',
+        borderRadius: '20px',
+        padding: '30px',
+        margin: '40px auto',
+        maxWidth: '900px'
+      }}>
+        <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#6366f1', textAlign: 'center', marginBottom: '30px' }}>
+          🚀 NEW: Enterprise AI Engine
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+          <div style={{
+            background: 'rgba(16,185,129,0.1)',
+            border: '2px solid rgba(16,185,129,0.3)',
+            borderRadius: '12px',
+            padding: '20px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>⚡</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#10b981', marginBottom: '8px' }}>98% Cost Reduction</div>
+            <div style={{ fontSize: '0.9rem', color: '#9ca3af' }}>Super-efficient batch processing analyzes 50 mentions per AI call</div>
+          </div>
+          <div style={{
+            background: 'rgba(239,68,68,0.1)',
+            border: '2px solid rgba(239,68,68,0.3)',
+            borderRadius: '12px',
+            padding: '20px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🎯</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ef4444', marginBottom: '8px' }}>Lead Quality Scoring</div>
+            <div style={{ fontSize: '0.9rem', color: '#9ca3af' }}>0-100 score based on buying intent, engagement, audience & relevance</div>
+          </div>
+          <div style={{
+            background: 'rgba(245,158,11,0.1)',
+            border: '2px solid rgba(245,158,11,0.3)',
+            borderRadius: '12px',
+            padding: '20px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>💼</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#f59e0b', marginBottom: '8px' }}>Industry Targeting</div>
+            <div style={{ fontSize: '0.9rem', color: '#9ca3af' }}>Premium scoring for Legal, Mortgage, Real Estate, Healthcare & more</div>
+          </div>
+        </div>
+      </div>
+
+
       {/* BLACK FRIDAY DEAL */}
       <div style={{ marginBottom: '40px' }}>
         <p style={{ fontSize: '1.5rem', textDecoration: 'line-through', opacity: 0.6 }}>
