@@ -11,8 +11,8 @@ export default function SocialListeningDashboard() {
   const [activeTab, setActiveTab] = useState('campaigns'); // campaigns, mentions, outreach, analytics
 
   // Mock user ID - in production, get from auth
-  const userId = 'user-123';
-
+  // Generate a UUID for demo purposes (replace with real authentication later)
+  const userId = typeof window !== 'undefined' && window.crypto ? crypto.randomUUID() : '00000000-0000-0000-0000-000000000001';
   useEffect(() => {
     loadCampaigns();
   }, []);
