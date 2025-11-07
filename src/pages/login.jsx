@@ -26,7 +26,7 @@ export default function Login() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}`,
+            emailRedirectTo: `${window.location.origin}`/social-listening`
           },
         });
 
@@ -47,9 +47,8 @@ export default function Login() {
         if (error) throw error;
 
         // Redirect to app
-        50
-          ('');
-      }
+                router.push('/social-listening');
+          
     } catch (err) {
       setError(err.message || 'Authentication failed');
     } finally {
@@ -65,7 +64,7 @@ export default function Login() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`,
+          redirectTo: `${window.location.origin}`/social-listening`
         },
       });
 
