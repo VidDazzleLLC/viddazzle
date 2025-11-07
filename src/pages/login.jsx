@@ -26,7 +26,7 @@ export default function Login() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/app`,
+            emailRedirectTo: `${window.location.origin}`,
           },
         });
 
@@ -47,7 +47,8 @@ export default function Login() {
         if (error) throw error;
 
         // Redirect to app
-        router.push('/app');
+        50
+          ('');
       }
     } catch (err) {
       setError(err.message || 'Authentication failed');
@@ -64,7 +65,7 @@ export default function Login() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/app`,
+          redirectTo: `${window.location.origin}`,
         },
       });
 
