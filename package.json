@@ -34,6 +34,7 @@
     "security:apply": "node scripts/apply-security.js",
     "security:activate": "bash scripts/activate-security.sh",
     "env:validate": "node -e \"require('./src/lib/env-validation.js').validateEnvironment({ verbose: true })\"",
+    "validate:vercel": "node scripts/validate-vercel-env.js",
     "postinstall": "echo '✨ Dependencies installed successfully'"
   },
   "dependencies": {

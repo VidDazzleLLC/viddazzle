@@ -13,6 +13,40 @@ import * as supabaseClient from './supabase.js';
 const hasPostgresUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 const hasSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
+// Validate DATABASE_URL is not using Railway internal hostname
+if (hasPostgresUrl && (hasPostgresUrl.includes('railway.internal') || hasPostgresUrl.includes('postgres.railway.internal'))) {
+  const errorMessage = `
+❌ CRITICAL DATABASE CONFIGURATION ERROR ❌
+
+DATABASE_URL is using Railway's internal hostname: ${hasPostgresUrl.split('@')[1]?.split('/')[0] || 'railway.internal'}
+
+This hostname ONLY works within Railway's private network.
+Your app is deployed on Vercel, which CANNOT access Railway's internal network.
+
+SOLUTION:
+1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+2. Update DATABASE_URL to use one of these:
+
+   Option A - Neon PostgreSQL (recommended):
+   postgresql://neondb_owner:...@ep-....neon.tech/neondb
+
+   Option B - Railway External URL:
+   postgresql://postgres:...@containers-us-west-xxx.railway.app:5432/railway
+   OR
+   postgresql://postgres:...@randomname.proxy.rlwy.net:12345/railway
+
+3. Save and redeploy your application
+
+See docs/VERCEL_DATABASE_FIX.md for detailed instructions.
+
+NEVER use these from Vercel:
+❌ postgres.railway.internal (Railway internal only)
+❌ localhost or 127.0.0.1 (local only)
+`;
+
+  throw new Error(errorMessage);
+}
+
 let dbClient;
 
 if (hasPostgresUrl) {

@@ -352,6 +352,60 @@ Visit your deployed app and try features that use the database:
    - Go to Supabase Dashboard → SQL Editor
    - Run the SQL from `supabase/complete-schema.sql`
 
+### ⚠️ Authentication Fails with Database Connection Error
+
+**Symptoms:**
+- Users cannot sign in or sign up
+- Error: `PrismaClientInitializationError` or `getaddrinfo ENOTFOUND postgres.railway.internal`
+- 500 Internal Server Error on `/login` page
+- Database operations fail in production
+
+**Root Cause:**
+
+Your Vercel deployment has `DATABASE_URL` pointing to Railway's **internal** hostname (`postgres.railway.internal`), which only works within Railway's private network. Vercel **cannot** access Railway's internal network.
+
+**Solution:**
+
+1. **Update DATABASE_URL in Vercel** (CRITICAL):
+   ```
+   Go to: Vercel Dashboard → Your Project → Settings → Environment Variables
+   ```
+
+2. **Use one of these options:**
+
+   **Option A - Neon PostgreSQL (Recommended):**
+   ```
+   postgresql://neondb_owner:...@ep-....neon.tech/neondb?sslmode=require
+   ```
+
+   **Option B - Railway External URL:**
+   ```
+   postgresql://postgres:...@containers-us-west-xxx.railway.app:5432/railway
+   ```
+   OR
+   ```
+   postgresql://postgres:...@randomname.proxy.rlwy.net:12345/railway
+   ```
+
+   **Option C - Supabase:**
+   ```
+   postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres
+   ```
+
+3. **Never use these from Vercel:**
+   - ❌ `postgres.railway.internal` (Railway internal only)
+   - ❌ `localhost` or `127.0.0.1` (local only)
+
+4. **After updating, redeploy your application**
+
+**For detailed instructions, see:** [docs/VERCEL_DATABASE_FIX.md](./docs/VERCEL_DATABASE_FIX.md)
+
+**Validation:**
+```bash
+# Test your DATABASE_URL configuration
+npm run validate:vercel
+```
+
 ### GitHub Actions Fails
 
 **Check these items:**
