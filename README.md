@@ -4,7 +4,7 @@ AI-powered workflow automation platform built with Claude Opus 4.1, MCP (Model C
 
 ## Features
 
-- **AI-Powered Workflow Generation**: Describe what you want to automate in natural language, and Claude generates a complete workflow
+- **AI -Powered Workflow Generation**: Describe what you want to automate in natural language, and Claude generates a complete workflow
 - **Visual Workflow Editor**: See and modify workflows with an intuitive interface
 - **MCP Tool Integration**: 15+ pre-configured tools for file operations, HTTP requests, database queries, and more
 - **Connector Library**: Easy integration with Slack, Gmail, GitHub, Notion, and 10+ other services
